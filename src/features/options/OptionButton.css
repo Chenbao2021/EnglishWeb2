@@ -1,0 +1,43 @@
+.optionButton-Container{
+    background-color: saddlebrown;
+    flex-grow: 1;
+
+    width: 25vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-style: solid;
+    border-color: black;
+    border-width: 1;
+}
+
+.wordsContainer{
+    background-color: aqua;
+    height: 80%;
+    padding: 5%;
+    /* display: flex;
+    flex-wrap: wrap; */
+
+
+}
+
+.wordContainer{
+    width: 80%;
+    height: 10%;
+
+    margin: 5%;
+
+    border: 1px solid black;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wordsButtonContainer{
+    display: flex;   
+}
+.wordsButtonContainer BUtton{
+    flex-grow: 1;
+}

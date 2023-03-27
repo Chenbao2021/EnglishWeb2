@@ -1,0 +1,45 @@
+.dungeon-text{
+    flex-grow: 1;
+    background-image: url('../../object/imgs/Dungeon.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+
+    display: flex;
+    flex-wrap: wrap;
+
+    overflow: scroll;
+
+  border-radius: 20px;
+
+}
+
+.fight-button{
+    background-color: black;
+    color: aliceblue;
+    font-size: large;
+    
+}
+
+.word-container{
+    background-color: grey;
+    
+
+    display: flex;
+    flex-direction: column;
+
+    width: 40%;
+
+    max-height: 40%;
+    min-height: 40%;
+
+    margin: 5px;
+
+    border-radius: 10px;
+
+    background-image: url('../../object/imgs/Word_container.png');
+    background-size:contain;
+    background-repeat: no-repeat;
+    
+    color: aqua;
+
+}
