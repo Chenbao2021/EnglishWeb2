@@ -5,9 +5,13 @@ import Modal from 'react-modal';
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection,setDoc, query, where, getDocs, getDoc, addDoc, doc } from "firebase/firestore";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { BsFillJournalBookmarkFill, BsClipboardCheckFill, BsClipboard2HeartFill } from 'react-icons/bs';
+import { BsFillJournalBookmarkFill, BsClipboardCheckFill, BsClipboard2HeartFill, BsFillLightbulbFill } from 'react-icons/bs';
 import { GiRank3 } from 'react-icons/gi'
 import { AiOutlineSetting } from 'react-icons/ai'
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyCgLy9XmmzJn3DYf0VTXCzvyA1VxrlplLc",
@@ -28,6 +32,13 @@ function App() {
   const db = getFirestore(app);
   const [ words, setWords ] = useState([]);
   const [ clicked, setClicked ] = useState(false)
+  const [dateClicked, setDateClicked ]= useState(false);
+  const [day, setDay] = useState('')
+  const [month, setMonth] = useState('');
+  const [usefulWebClicked, setUsefulwebClicked ] = useState(false);
+  const [addWordClicked, setAddWordClicked] = useState(false);
+  const [word, setWord] = useState('');
+  const [wordDescription, setWordDescryption] = useState('');
   const getWord = async () => { 
     var today = new Date(),
     date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
@@ -46,7 +57,7 @@ function App() {
 
   const Options = (props) => {
     return(
-      <button onClick={() => props.f()} className='bodyOption'>
+      <button onClick={() => props.f(true)} className='bodyOption'>
         <div className='bodyOptionLeft'>
           {props.icon}
         </div>
@@ -57,11 +68,24 @@ function App() {
       </button>
     )
   }
+  const Options2 = (props) => {
+    return(
+      <a href='https://drive.google.com/drive/folders/1H4d2b6fdilUh22k40n2kFfwNDotjwBUd?usp=share_link' className='bodyOption2'>
+        <div className='bodyOptionLeft'>
+          {props.icon}
+        </div>
+        <div className='bodyOptionRight'>
+          <p style={{ fontWeight: 'bold', fontSize: '14px' }}>{props.title}</p>
+          <p style={{ fontSize: '8px' }}>{props.description}</p>
+        </div>
+      </a>
+    )
+  }
 
   const Setting = (props) => {
     return(
       <button className='bodySetting' onClick={() => setSetting(true)}>
-        <AiOutlineSetting size='20px' />
+        <AiOutlineSetting size='50px' />
       </button>
     )
   }
@@ -71,16 +95,16 @@ function App() {
         isOpen={setting}
         className='bodySettingContents'
       >
-          <button className='btn1' >登录账号</button>
-          <button className='btn2' >添加单词</button>
-          <button className='btn3' >联系方式</button>
+          <button className='btn1' >登录</button>
+          <button className='btn2' >联系</button>
+          <button className='btn3' >打卡</button>
           <button className='btn4' onClick={() => setSetting(false)}>返回</button>
     </Modal>
     )
   }
   const Word = (props) => {
     return(
-      <div style={{ display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', flexGrow: 0.8, marginTop: '3%' , borderRadius: '2%',  }}>
+      <div style={{ display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
         <div style={{ width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent:'center', alignItems: 'center', }}>
           <p>{props.cn}</p>
           <p>{props.en}</p>
@@ -98,15 +122,23 @@ function App() {
         className='vocabulariesBoardContents'
       >
         <div className='vocabulariesBoard'>
-          {words.map(word => {
-                return(
-                    <Word cn={word.cn} en={word.en} />
-                )
-          })}
-          <div className='vocabulariesButtons' style={{   }}>
+          { words.length !== 0 ?
+              words.map(word => {
+                    return(
+                        <Word cn={word.cn} en={word.en} />
+                    )
+                    })
+            : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
+                <h1>No word Today!</h1>
+              </div>
+          }
+          <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
             <button style={{
-              width: '100%',
+              width: '90%',
               marginTop: '5%',
+
+              position: 'absolute',
+              bottom: '5vh',
             }}
               onClick={() => setClicked(false)}
             >
@@ -117,23 +149,156 @@ function App() {
       </Modal>
     )
   }
+  const SetDate = (props) => {
+    const getWordByCalendar = async () => { 
+      var today = new Date(),
+      date = today.getFullYear() + '-' + (month + 1) + '-' + day;
+      const q = query(collection(db, 'vocabularies'), where('date', '==', date))
+      const querySnapshot = await getDocs(q);
+      const tab=[]
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        tab.push({ ...data, id: doc.id})
+      })
+      setWords(tab);
+      setDateClicked(false);
+      setClicked(true)
+    }
+    return(
+    <Modal
+        isOpen={dateClicked}
+        className="customSetDateModal"
+      >
+        <Calendar onClickDay={(date) => {setMonth(date.getMonth()); setDay(date.getDate())}}/>
+        <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center',   }}>
+          <button style={{
+                width: '90%',
+                marginTop: '5%',
+
+                // position: 'absolute',
+                bottom: '10vh',
+              }}
+                onClick={() => getWordByCalendar()}
+              >
+                <p>确定</p>
+            </button>
+            <button style={{
+              width: '90%',
+              marginTop: '5%',
+
+              // position: 'absolute',
+              // bottom: '5vh',
+            }}
+              onClick={() => setDateClicked(false)}
+            >
+              <p>返回</p>
+            </button>
+          </div>
+    </Modal>
+    )
+  }
+  const UsefulWeb = (props) => {
+    return(
+      <a href={props.URI} style={{  all: 'unset', border:'1px solid black', display: 'flex', flexDirection: 'column', alignItems: 'center',height: '20%', width: '100%', borderRadius:"2vw", backgroundColor : '#57DDAF', marginBottom: '3vh',  }}>
+        <p style={{ margin: 0, borderBottom: '1px solid black', width: '100%', textAlign:'center' }}>{props.title}</p>
+        <div style={{ flexGrow: 1, }}>
+          <p>{props.description}</p>
+        </div>
+      </a>
+    )
+  }
+  const UsefulWebContainer = (props) => {
+    return(
+      <Modal  isOpen={usefulWebClicked}>
+        <UsefulWeb title={'TOEICTest Pro'} description={'免费，海量的托业题，没有广告，并且有专门复习语法的地方'} URI={'https://toeic-testpro.com/'} />
+        <UsefulWeb title={'Usingenglish'} description={'免费，海量的基础题，'} URI={'https://www.usingenglish.com/quizzes/'} />
+
+        <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
+            <button style={{
+              width: '90%',
+              marginTop: '5%',
+
+              position: 'absolute',
+              bottom: '5vh',
+            }}
+              onClick={() => setUsefulwebClicked(false)}
+            >
+              <p>返回</p>
+            </button>
+          </div>
+      </Modal>
+    )
+  }
+  const AddWord = (props) => {
+    const pushWord = () => {
+      const docRef = doc(db, 'recommandations', `${word}`);
+      setDoc(docRef, {word: word, description: wordDescription }).then(() => {
+        alert('成功推荐单词!');
+        setWord('');
+        setWordDescryption('');
+      })
+      .catch((error) => {
+        alert('出现错误，请稍后再试');
+      }) 
+      
+      setAddWordClicked(false);
+    }
+    return(
+      <Modal
+        isOpen={addWordClicked}
+      >
+        <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
+          <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
+                <h3>谢谢提供单词!</h3>
+                <p style={{ marginBottom:0, padding: 0, }}>Word : <input value={word} onChange={(e) => setWord(e.target.value)} style={{ width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+                <p>Description : <textarea style={{ all: 'unset',   textAlign: 'unset', border: '1px black solid', height:'30vh', width: "100%", padding: '1px' }} value={wordDescription} onChange={(e) => setWordDescryption(e.target.value)} /> </p> 
+          </div>
+            <button style={{
+              width: '90%',
+              marginTop: '5%',
+              position: 'absolute',
+              bottom: '15vh',
+            }}
+              onClick={() => pushWord()}
+            >
+              <p>确定</p>
+            </button>
+            <button style={{
+              width: '90%',
+              marginTop: '5%',
+
+              position: 'absolute',
+              bottom: '5vh',
+            }}
+              onClick={() => setAddWordClicked(false)}
+            >
+              <p>返回</p>
+            </button>
+        </div>
+      </Modal>
+    )
+  }
   return (
       <div className="App">
         <header className="App-header">
             <div style={{ color: 'white' }}>
-              <h3>TOEIC 800</h3>
+              <h1>TOEIC 800</h1>
               <p>目标: 托业 800 ! </p>
             </div>
         </header>
         <body className='App-body'>
-            <Options title="今日知识点" description='每天一个托业语法知识点' icon={<BsFillJournalBookmarkFill color="black" size="20px" />} />
+            <Options2 title="语法整理" description='根据托业真题整理' icon={<BsFillJournalBookmarkFill color="black" size="20px" />} />
             <Options f={getWord} title="今日单词" description='每天三个单词' icon={<BsClipboard2HeartFill color="black" size="20px" />} />
-            <Options title="检查历史单词" description='检查历史知识点以及单词' icon={<BsClipboardCheckFill size="20px" />}/>
-            <Options title="打卡排行" description='' icon={<GiRank3 size="25px"/>} />
+            <Options f={setDateClicked} title="历史单词" description='历史单词' icon={<BsClipboardCheckFill size="20px" />}/>
+            <Options f={setUsefulwebClicked} title="推荐网站" description='亲自使用过' icon={<BsFillLightbulbFill size="20px"/>} />
+            <Options f={setAddWordClicked} title="上传单词" description='上传的单词通过检查后会在第二天为其他人提供' icon={<GiRank3 size="25px"/>} />
         </body>
         <Setting />
         <SettingContents />
+        <SetDate />
         <VocabulariesBoard />
+        <UsefulWebContainer />
+        <AddWord />
       </div>
     );
 }

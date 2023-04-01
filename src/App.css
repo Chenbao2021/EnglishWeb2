@@ -7,6 +7,17 @@
   display: flex;
   flex-direction: column;
 }
+.customSetDateModal {
+  background-color:  white;
+  border-radius: 3vw;
+  padding: 3vh;
+  width: 70%;
+  height: 55%;
+  position: absolute;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+}
 .app-header {
 
 }
@@ -22,12 +33,30 @@
 .vocabulariesBoard{
   background-color: white;
   width: 80%;
-  height: 100%;
+  height: 95%;
   padding: 5%;
   display: flex;
   flex-direction: column;
+
+  position: relative;
 }
 .bodyOption{
+  all: unset;
+  border: 1px black solid;
+  background-color: white;
+
+  width: 80%;
+  height: 10vh;
+  border-radius: 5px;
+
+  margin-bottom: 10px;
+
+  display: flex;
+  align-items: center;
+}
+.bodyOption2{
+  all:unset;
+  border: 1px black solid;
   background-color: white;
 
   width: 80%;
@@ -57,12 +86,12 @@
 }
 .bodySetting{
   position: absolute;
-  bottom: 5vh;
+  bottom:10vh;
   left: 50%;
   transform: translate(-50%, 50%);
 
-  height: 40px;
-  width: 40px;
+  height: 70px;
+  width: 70px;
   border-radius: 50%;
   background-color: white;
   color: black;
@@ -118,10 +147,8 @@
   grid-column: 1;
 }
 .App-header {
-  height: 30vh;
-  /* flex-grow: 1; */
+  height: 20vh;
   padding-top: 20px;
-  /* background-color:chocolate; */
 }
 .App-body{
   flex-grow: 1;
@@ -136,14 +163,3 @@
   /* background-color: bisque; */
 }
 
-@keyframes App-logo-float {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
