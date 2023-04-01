@@ -39,6 +39,13 @@ function App() {
   const [addWordClicked, setAddWordClicked] = useState(false);
   const [word, setWord] = useState('');
   const [wordDescription, setWordDescryption] = useState('');
+  const [userId, setUserId] = useState('');
+  const [userName, setUserName] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName]= useState('');
+  const [userType, setUserType] = useState('');
+  const [inscription, setInscription] = useState(false);
   const getWord = async () => { 
     var today = new Date(),
     date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
@@ -82,40 +89,134 @@ function App() {
     )
   }
 
-  const Setting = (props) => {
+  const M_Setting = (props) => {
     return(
       <button className='bodySetting' onClick={() => setSetting(true)}>
         <AiOutlineSetting size='50px' />
       </button>
     )
   }
-  const SettingContents = (props) => {
+  const M_SettingContents = (props) => {
+    const connexion = async (props) => {
+      createUserWithEmailAndPassword(auth, props.email, props.password)
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        setUserId(user.uid);
+        const userData= { skills : [], name: props.userName, group: props.userType  }
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, userData).then(() => {
+          alert('Compte crée');
+          setUserName(props.name);
+        })
+        .catch((error) => {
+          console.log('error lors de le ajout du document')
+        } )
+        // getWords();
+      })
+      .catch((e) => {
+        console.log('Votre compte existe déjà, =', e);
+        signInWithEmailAndPassword(auth, email, password)
+        .then(async (userCredential) => {
+          // Signed in 
+          const user = userCredential.user;
+          setUserId(user.uid);
+          const q = doc(db, 'users', user.uid)
+          const userData = await getDoc(q);
+          setUserName(userData.data().name); 
+          // ...
+          // getWords();
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+        });
+      });
+    }
+    const deconnexion = () => {
+      auth.signOut()
+      .then(() => {
+        console.log('Utilisateur déconnecté');
+        setUserId('')
+      })
+      .catch((error) => {
+        console.log(error.message);
+      });
+      setUserName('')
+    }
     return(
       <Modal
         isOpen={setting}
         className='bodySettingContents'
       >
-          <button className='btn1' >登录</button>
-          <button className='btn2' >联系</button>
-          <button className='btn3' >打卡</button>
-          <button className='btn4' onClick={() => setSetting(false)}>返回</button>
+        {
+          userId === '' 
+          ?
+          <div style={{ display: 'flex', flexDirection: 'column',  justifyContent: 'space-between', backgroundColor : 'grey',  width: '100%', gridColumn: '1/3', gridRow: '1/3'    }}>
+            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center", flexGrow: 1, justifyContent: 'center', }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', width: '100%',  justifyContent: 'space-around' }}>
+                    <button onClick={() => { setInscription(false) }} style={{ all: 'unset',  margin: '5px', flexGrow: 1, textAlign: 'center', borderRadius: '5px', backgroundColor: !inscription ? 'blueviolet': undefined }}>登录</button>
+                    <button onClick={() => setInscription(true)} style={{ all: 'unset',  margin: '5px', flexGrow: 1, textAlign: 'center', borderRadius: '5px', backgroundColor: inscription ? 'blueviolet': undefined}}>注册</button>
+                  </div>
+                  <p style={{ marginBottom:0, padding: 0, }}>邮箱 : <input value={email} onChange={(e) => setEmail(e.target.value)} /> </p> 
+                  <p style={{ marginBottom:0, padding: 0, }}>密码 : <input value={password} onChange={(e) => setPassword(e.target.value)} /> </p> 
+                  {
+                    inscription ? 
+                    <>
+                    <p style={{ marginBottom:0, padding: 0, }}>名字 : <input value={name} onChange={(e) => setName(e.target.value)} /> </p> 
+                    <p style={{ marginBottom:0, padding: 0, }}>账号类型: <select value={userType} onChange={setUserType}>
+                    <option value="null">------</option>
+                    <option value="admin">管理者</option>
+                    <option value="user">使用者</option>
+                  </select>
+                  </p>
+                    </>: undefined
+                  }
+
+            </div>
+            <div style={{ display: 'flex', flexDirection:'row',}}>
+              <button style={{
+                width: '90%',
+                marginTop: '5%',
+              }}
+                onClick={() => connexion({email: email, password: password, name: name, userType: userType})}
+              >
+                <p>确定</p>
+              </button>
+              <button style={{
+                width: '90%',
+                marginTop: '5%',
+              }}
+                onClick={() => setAddWordClicked(false)}
+              >
+                <p>返回</p>
+              </button>
+            </div>
+          </div>
+          :
+          <>
+            <button className='btn1' >上传单词</button>
+            <button className='btn2' >单词本子</button>
+            <button className='btn3' >打卡</button>
+            <button className='btn4' onClick={() => setSetting(false)}>返回</button>
+          </>
+        }
     </Modal>
     )
   }
-  const Word = (props) => {
-    return(
-      <div style={{ display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
-        <div style={{ width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent:'center', alignItems: 'center', }}>
-          <p>{props.cn}</p>
-          <p>{props.en}</p>
+  const M_VocabulariesBoard = (props) => {
+    const Word = (props) => {
+      return(
+        <div style={{ display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
+          <div style={{ width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent:'space-around', alignItems: 'center', }}>
+            <p>{props.cn}</p>
+            <p>{props.en}</p>
+          </div>
+          <div style={{ flexGrow: 4, backgroundColor: '#D7DDAF' }}>
+            <p>BLABLA</p>
+          </div>
         </div>
-        <div style={{ flexGrow: 4, backgroundColor: '#D7DDAF' }}>
-          <p>BLABLA</p>
-        </div>
-      </div>
-    )
-  }
-  const VocabulariesBoard = (props) => {
+      )
+    }
     return(
       <Modal
         isOpen={clicked}
@@ -149,7 +250,7 @@ function App() {
       </Modal>
     )
   }
-  const SetDate = (props) => {
+  const M_SetDate = (props) => {
     const getWordByCalendar = async () => { 
       var today = new Date(),
       date = today.getFullYear() + '-' + (month + 1) + '-' + day;
@@ -207,7 +308,7 @@ function App() {
       </a>
     )
   }
-  const UsefulWebContainer = (props) => {
+  const M_UsefulWebContainer = (props) => {
     return(
       <Modal  isOpen={usefulWebClicked}>
         <UsefulWeb title={'TOEICTest Pro'} description={'免费，海量的托业题，没有广告，并且有专门复习语法的地方'} URI={'https://toeic-testpro.com/'} />
@@ -229,7 +330,7 @@ function App() {
       </Modal>
     )
   }
-  const AddWord = (props) => {
+  const M_AddWord = (props) => {
     const pushWord = () => {
       const docRef = doc(db, 'recommandations', `${word}`);
       setDoc(docRef, {word: word, description: wordDescription }).then(() => {
@@ -291,14 +392,14 @@ function App() {
             <Options f={getWord} title="今日单词" description='每天三个单词' icon={<BsClipboard2HeartFill color="black" size="20px" />} />
             <Options f={setDateClicked} title="历史单词" description='历史单词' icon={<BsClipboardCheckFill size="20px" />}/>
             <Options f={setUsefulwebClicked} title="推荐网站" description='亲自使用过' icon={<BsFillLightbulbFill size="20px"/>} />
-            <Options f={setAddWordClicked} title="上传单词" description='上传的单词通过检查后会在第二天为其他人提供' icon={<GiRank3 size="25px"/>} />
+            <Options f={setAddWordClicked} title="推荐单词" description='推荐的单词通过检查后会在第二天为其他人提供' icon={<GiRank3 size="25px"/>} />
         </body>
-        <Setting />
-        <SettingContents />
-        <SetDate />
-        <VocabulariesBoard />
-        <UsefulWebContainer />
-        <AddWord />
+        <M_Setting />
+        <M_SettingContents />
+        <M_SetDate />
+        <M_VocabulariesBoard />
+        <M_UsefulWebContainer />
+        <M_AddWord />
       </div>
     );
 }
