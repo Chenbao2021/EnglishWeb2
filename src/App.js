@@ -1,9 +1,9 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, FlatList} from 'react';
 import './App.css';
 import Modal from 'react-modal';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection,setDoc, query, where, getDocs, getDoc, addDoc, doc } from "firebase/firestore";
+import { getFirestore, arrayUnion, collection,setDoc, query, where, getDocs, getDoc, addDoc, doc, updateDoc } from "firebase/firestore";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { BsFillJournalBookmarkFill, BsClipboardCheckFill, BsClipboard2HeartFill, BsFillLightbulbFill } from 'react-icons/bs';
 import { GiRank3 } from 'react-icons/gi'
@@ -46,6 +46,10 @@ function App() {
   const [name, setName]= useState('');
   const [userType, setUserType] = useState('');
   const [inscription, setInscription] = useState(false);
+  const [wordEnglish, setWordEnglish] = useState('');
+  const [wordChinese, setWordChinese] = useState('')
+  const [uploadWordClicked, setUploadWordClicked] = useState('');
+  const [checkVocabulariesBoard, setCheckVocabulariesBoard] = useState('');
   const getWord = async () => { 
     var today = new Date(),
     date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
@@ -88,7 +92,6 @@ function App() {
       </a>
     )
   }
-
   const M_Setting = (props) => {
     return(
       <button className='bodySetting' onClick={() => setSetting(true)}>
@@ -96,14 +99,18 @@ function App() {
       </button>
     )
   }
+
   const M_SettingContents = (props) => {
     const connexion = async (props) => {
       createUserWithEmailAndPassword(auth, props.email, props.password)
       .then(async (userCredential) => {
         const user = userCredential.user;
         setUserId(user.uid);
-        const userData= { skills : [], name: props.userName, group: props.userType  }
-        const userRef = doc(db, 'users', user.uid);
+        var today = new Date(),
+        date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();    
+        const userData= { skills : [], name: props.name, group: props.userType, checkIn: 0, lastCheckIn: date }
+        const userRef = doc(db, 'users', `${user.uid}`);
+  
         await setDoc(userRef, userData).then(() => {
           alert('Compte crée');
           setUserName(props.name);
@@ -143,6 +150,18 @@ function App() {
       });
       setUserName('')
     }
+    const checkIn = async (props ) => {
+
+    }
+    const checkWord = async (props) => {
+      const userRef = doc(db, 'users', userId);
+      const userData = await getDoc(userRef);
+
+      setWords(userData.data().skills);
+
+      setCheckVocabulariesBoard(true);
+      setSetting(false);
+    }
     return(
       <Modal
         isOpen={setting}
@@ -151,19 +170,20 @@ function App() {
         {
           userId === '' 
           ?
-          <div style={{ display: 'flex', flexDirection: 'column',  justifyContent: 'space-between', backgroundColor : 'grey',  width: '100%', gridColumn: '1/3', gridRow: '1/3'    }}>
-            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center", flexGrow: 1, justifyContent: 'center', }}>
-                  <div style={{ display: 'flex', flexDirection: 'row', width: '100%',  justifyContent: 'space-around' }}>
-                    <button onClick={() => { setInscription(false) }} style={{ all: 'unset',  margin: '5px', flexGrow: 1, textAlign: 'center', borderRadius: '5px', backgroundColor: !inscription ? 'blueviolet': undefined }}>登录</button>
-                    <button onClick={() => setInscription(true)} style={{ all: 'unset',  margin: '5px', flexGrow: 1, textAlign: 'center', borderRadius: '5px', backgroundColor: inscription ? 'blueviolet': undefined}}>注册</button>
+          <div style={{ display: 'flex', flexDirection: 'column',  justifyContent: 'space-between', backgroundColor : 'violet',  width: '100%', gridColumn: '1/3', gridRow: '1/3'    }}>
+            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center", flexGrow: 1, justifyContent: 'center' }}>
+                  <div style={{ height: '20%', display: 'flex', flexDirection: 'row', width: '100%',  justifyContent: 'space-around' }}>
+                    <button onClick={() => { setInscription(false) }} style={{ all: 'unset',  padding: '5px', flexGrow: 1, textAlign: 'center', borderRadius: '5px', backgroundColor: !inscription ? 'blueviolet': undefined }}>登录</button>
+                    <button onClick={() => setInscription(true)} style={{ all: 'unset',  padding: '5px', flexGrow: 1, textAlign: 'center', borderRadius: '5px', backgroundColor: inscription ? 'blueviolet': undefined}}>注册</button>
                   </div>
-                  <p style={{ marginBottom:0, padding: 0, }}>邮箱 : <input value={email} onChange={(e) => setEmail(e.target.value)} /> </p> 
-                  <p style={{ marginBottom:0, padding: 0, }}>密码 : <input value={password} onChange={(e) => setPassword(e.target.value)} /> </p> 
+                  <div style={{ flexGrow: 5 }}>
+                  <p style={{ marginBottom:0, padding: 0, }}>邮箱 : <input type='text' value={email} onChange={(e) => setEmail(e.target.value)} /> </p> 
+                  <p style={{ marginBottom:0, padding: 0, }}>密码 : <input type='text' value={password} onChange={(e) => setPassword(e.target.value)} /> </p> 
                   {
                     inscription ? 
                     <>
                     <p style={{ marginBottom:0, padding: 0, }}>名字 : <input value={name} onChange={(e) => setName(e.target.value)} /> </p> 
-                    <p style={{ marginBottom:0, padding: 0, }}>账号类型: <select value={userType} onChange={setUserType}>
+                    <p style={{ marginBottom:0, padding: 0, }}>账号类型: <select value={userType} onChange={(e) => setUserType(e.target.value)}>
                     <option value="null">------</option>
                     <option value="admin">管理者</option>
                     <option value="user">使用者</option>
@@ -171,7 +191,7 @@ function App() {
                   </p>
                     </>: undefined
                   }
-
+                  </div>
             </div>
             <div style={{ display: 'flex', flexDirection:'row',}}>
               <button style={{
@@ -186,7 +206,7 @@ function App() {
                 width: '90%',
                 marginTop: '5%',
               }}
-                onClick={() => setAddWordClicked(false)}
+                onClick={() => setSetting(false)}
               >
                 <p>返回</p>
               </button>
@@ -194,9 +214,9 @@ function App() {
           </div>
           :
           <>
-            <button className='btn1' >上传单词</button>
-            <button className='btn2' >单词本子</button>
-            <button className='btn3' >打卡</button>
+            <button onClick={() => { setSetting(false); setUploadWordClicked(true) }} className='btn1' >上传单词</button>
+            <button onClick={() => { checkWord() }} className='btn2' >单词本子</button>
+            <button onClick={() => { checkIn() }} className='btn3' >打卡</button>
             <button className='btn4' onClick={() => setSetting(false)}>返回</button>
           </>
         }
@@ -205,16 +225,28 @@ function App() {
   }
   const M_VocabulariesBoard = (props) => {
     const Word = (props) => {
+      const getWord = async (props) => {
+        if(userId === '') {
+          alert('请登录!');
+        } else {
+          setWords(words.filter((e) => e.cn !== props.cn));
+          var today = new Date(),
+          date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();  
+          const userRef = doc(db, 'users', userId);
+          await updateDoc(userRef, {skills: arrayUnion({cn: props.cn, en: props.en, description: props.description, date: date})})
+          alert('单词已经保存在你的单词本里面了')
+        }
+      }
       return(
-        <div style={{ display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
+        <button onClick={() => { getWord({cn: props.cn, en: props.en, description: props.description}) }} style={{all: 'unset', display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', height: '150px', marginTop: '3%' , borderRadius: '2%',  }}>
           <div style={{ width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent:'space-around', alignItems: 'center', }}>
             <p>{props.cn}</p>
             <p>{props.en}</p>
           </div>
-          <div style={{ flexGrow: 4, backgroundColor: '#D7DDAF' }}>
-            <p>BLABLA</p>
+          <div style={{ width: '60%' , padding: '5px', backgroundColor: '#D7DDAF' }}>
+            <p>{props.description}</p>
           </div>
-        </div>
+        </button>
       )
     }
     return(
@@ -226,22 +258,79 @@ function App() {
           { words.length !== 0 ?
               words.map(word => {
                     return(
-                        <Word cn={word.cn} en={word.en} />
+                        <Word cn={word.cn} en={word.en} description={word.description} />
                     )
                     })
             : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
-                <h1>No word Today!</h1>
+                <h1>没有单词啦!</h1>
               </div>
           }
-          <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
+          <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center',  height: '80px',  }}>
             <button style={{
-              width: '90%',
-              marginTop: '5%',
+              width: '100%',
+              height: '80%',
+              marginTop: '10%',
 
-              position: 'absolute',
-              bottom: '5vh',
+              // bottom: '5vh',
             }}
               onClick={() => setClicked(false)}
+            >
+              <p>返回</p>
+            </button>
+          </div>
+        </div>
+      </Modal>
+    )
+  }
+  const M_CheckVocabulariesBoard = (props) => {
+    const Word = (props) => {
+      const getWord = async (props) => {
+        if(userId === '') {
+          alert('请登录!');
+        } else {
+          setWords(words.filter((e) => e.cn !== props.cn));
+          alert('这个单词复习好了!')
+        }
+      }
+      return(
+        <button onClick={() => { getWord({cn: props.cn, en: props.en, description: props.description}) }} style={{all: 'unset', display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', marginTop: '3%' , borderRadius: '2%', height: '150px',  }}>
+          <div style={{ width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent:'space-around', alignItems: 'center', }}>
+            <p>{props.cn}</p>
+            <p>{props.en}</p>
+          </div>
+          <div style={{ width: '60%' , padding: '5px', backgroundColor: '#D7DDAF' }}>
+            <p>{props.description}</p>
+          </div>
+        </button>
+      )
+    }
+    return(
+      <Modal
+        isOpen={checkVocabulariesBoard}
+        className='vocabulariesBoardContents'
+      >
+        <div className='vocabulariesBoard'>
+          { 
+            words.length !== 0 ?
+              words.map(word => {
+                return(
+                    <Word cn={word.cn} en={word.en} description={word.description} />
+                )
+                })
+            : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
+                <h1>没有单词啦!</h1>
+              </div>
+          }
+          <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center',  height: '80px',  }}>
+            <button style={{
+              width: '100%',
+
+              height: "80%",
+              marginTop: '10%',
+
+              bottom: '5vh',
+            }}
+              onClick={() => setCheckVocabulariesBoard(false)}
             >
               <p>返回</p>
             </button>
@@ -271,12 +360,10 @@ function App() {
         className="customSetDateModal"
       >
         <Calendar onClickDay={(date) => {setMonth(date.getMonth()); setDay(date.getDate())}}/>
-        <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center',   }}>
+        <div className='vocabulariesButtons' style={{display: 'flex', justifyContent: 'center', position: 'absolute', bottom: '5%', width: '80%',  }}>
           <button style={{
-                width: '90%',
+                flexGrow: 1,
                 marginTop: '5%',
-
-                // position: 'absolute',
                 bottom: '10vh',
               }}
                 onClick={() => getWordByCalendar()}
@@ -284,11 +371,8 @@ function App() {
                 <p>确定</p>
             </button>
             <button style={{
-              width: '90%',
+              flexGrow: 1,
               marginTop: '5%',
-
-              // position: 'absolute',
-              // bottom: '5vh',
             }}
               onClick={() => setDateClicked(false)}
             >
@@ -345,38 +429,91 @@ function App() {
       setAddWordClicked(false);
     }
     return(
-      <Modal
-        isOpen={addWordClicked}
-      >
-        <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
-          <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
-                <h3>谢谢提供单词!</h3>
-                <p style={{ marginBottom:0, padding: 0, }}>Word : <input value={word} onChange={(e) => setWord(e.target.value)} style={{ width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
-                <p>Description : <textarea style={{ all: 'unset',   textAlign: 'unset', border: '1px black solid', height:'30vh', width: "100%", padding: '1px' }} value={wordDescription} onChange={(e) => setWordDescryption(e.target.value)} /> </p> 
-          </div>
-            <button style={{
-              width: '90%',
-              marginTop: '5%',
-              position: 'absolute',
-              bottom: '15vh',
-            }}
-              onClick={() => pushWord()}
-            >
-              <p>确定</p>
-            </button>
-            <button style={{
-              width: '90%',
-              marginTop: '5%',
+        <Modal
+          isOpen={addWordClicked}
+        >
+          <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
+            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
+                  <h3>谢谢提供单词!</h3>
+                  <p style={{ marginBottom:0, padding: 0, }}>Word : <input  type="text" value={word}  onChange={(e) => setWord(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+                  <p>Description : <textarea   type="text" style={{ all: 'unset',   textAlign: 'unset', border: '1px black solid', height:'30vh', width: "100%", padding: '1px' }} value={wordDescription} onChange={(e) => setWordDescryption(e.target.value)} /> </p> 
+            </div>
+              <button style={{
+                width: '90%',
+                marginTop: '5%',
+                position: 'absolute',
+                bottom: '15vh',
+              }}
+                onClick={() => pushWord()}
+              >
+                <p>确定</p>
+              </button>
+              <button style={{
+                width: '90%',
+                marginTop: '5%',
 
-              position: 'absolute',
-              bottom: '5vh',
-            }}
-              onClick={() => setAddWordClicked(false)}
-            >
-              <p>返回</p>
-            </button>
-        </div>
-      </Modal>
+                position: 'absolute',
+                bottom: '5vh',
+              }}
+                onClick={() => setAddWordClicked(false)}
+              >
+                <p>返回</p>
+              </button>
+          </div>
+        </Modal>
+    )
+  }
+  const M_UploadWord = (props) => {
+    const pushWord = () => {
+      const docRef = doc(db, 'vocabularies', `${wordEnglish}`);
+      var today = new Date(),
+      date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+      setDoc(docRef, {en: wordEnglish, cn: wordChinese,  description: wordDescription, date: date }).then(() => {
+        alert('成功上传单词!');
+        setWordChinese('');
+        setWordEnglish('');
+        setWordDescryption('');
+        setUploadWordClicked(false);
+      })
+      .catch((error) => {
+        alert('出现错误，请稍后再试');
+      }) 
+      
+      setAddWordClicked(false);
+    }
+    return(
+        <Modal
+          isOpen={uploadWordClicked}
+        >
+          <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
+            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
+                  <p style={{ marginBottom:0, padding: 0, }}>English : <input  type="text" value={wordEnglish}  onChange={(e) => setWordEnglish(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+                  <p style={{ marginBottom:0, padding: 0, }}>Chinese : <input  type="text" value={wordChinese}  onChange={(e) => setWordChinese(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+                  <p>Description : <textarea   type="text" style={{ all: 'unset',   textAlign: 'unset', border: '1px black solid', height:'30vh', width: "100%", padding: '1px' }} value={wordDescription} onChange={(e) => setWordDescryption(e.target.value)} /> </p> 
+            </div>
+              <button style={{
+                width: '90%',
+                marginTop: '5%',
+                position: 'absolute',
+                bottom: '15vh',
+              }}
+                onClick={() => pushWord()}
+              >
+                <p>确定</p>
+              </button>
+              <button style={{
+                width: '90%',
+                marginTop: '5%',
+
+                position: 'absolute',
+                bottom: '5vh',
+              }}
+                onClick={() => setUploadWordClicked(false)}
+              >
+                <p>返回</p>
+              </button>
+          </div>
+        </Modal>
     )
   }
   return (
@@ -391,15 +528,19 @@ function App() {
             <Options2 title="语法整理" description='根据托业真题整理' icon={<BsFillJournalBookmarkFill color="black" size="20px" />} />
             <Options f={getWord} title="今日单词" description='每天三个单词' icon={<BsClipboard2HeartFill color="black" size="20px" />} />
             <Options f={setDateClicked} title="历史单词" description='历史单词' icon={<BsClipboardCheckFill size="20px" />}/>
-            <Options f={setUsefulwebClicked} title="推荐网站" description='亲自使用过' icon={<BsFillLightbulbFill size="20px"/>} />
-            <Options f={setAddWordClicked} title="推荐单词" description='推荐的单词通过检查后会在第二天为其他人提供' icon={<GiRank3 size="25px"/>} />
+            <Options f={setUsefulwebClicked} title="推荐网站" description='亲自使用过, 点击网站名字直达' icon={<BsFillLightbulbFill size="20px"/>} />
+            <Options f={setAddWordClicked} title="上传单词" description='上传的单词通过检查后会在第二天为其他人提供' icon={<GiRank3 size="25px"/>} />
+            <div style={{ flexGrow: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', }}> 
+              {M_Setting()}
+            </div>
         </body>
-        <M_Setting />
-        <M_SettingContents />
-        <M_SetDate />
-        <M_VocabulariesBoard />
-        <M_UsefulWebContainer />
-        <M_AddWord />
+        {M_SettingContents() }
+        {M_SetDate() }
+        {M_VocabulariesBoard() }
+        {M_UsefulWebContainer()}
+        {M_AddWord()}
+        {M_UploadWord()}
+        {M_CheckVocabulariesBoard()}
       </div>
     );
 }
