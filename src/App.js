@@ -50,6 +50,8 @@ function App() {
   const [wordChinese, setWordChinese] = useState('')
   const [uploadWordClicked, setUploadWordClicked] = useState('');
   const [checkVocabulariesBoard, setCheckVocabulariesBoard] = useState('');
+  const [getWordClicked, setGetWordClicked ] = useState(false);
+
   const getWord = async () => { 
     var today = new Date(),
     date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
@@ -73,8 +75,8 @@ function App() {
           {props.icon}
         </div>
         <div className='bodyOptionRight'>
-          <p style={{ fontWeight: 'bold', fontSize: '14px' }}>{props.title}</p>
-          <p style={{ fontSize: '8px' }}>{props.description}</p>
+          <p style={{ fontWeight: 'bold', fontSize: '24px' }}>{props.title}</p>
+          <p style={{ fontSize: '12px' }}>{props.description}</p>
         </div>
       </button>
     )
@@ -86,8 +88,8 @@ function App() {
           {props.icon}
         </div>
         <div className='bodyOptionRight'>
-          <p style={{ fontWeight: 'bold', fontSize: '14px' }}>{props.title}</p>
-          <p style={{ fontSize: '8px' }}>{props.description}</p>
+          <p style={{ fontWeight: 'bold', fontSize: '24px' }}>{props.title}</p>
+          <p style={{ fontSize: '12px' }}>{props.description}</p>
         </div>
       </a>
     )
@@ -95,11 +97,10 @@ function App() {
   const M_Setting = (props) => {
     return(
       <button className='bodySetting' onClick={() => setSetting(true)}>
-        <AiOutlineSetting size='50px' />
+        <AiOutlineSetting size='60px' />
       </button>
     )
   }
-
   const M_SettingContents = (props) => {
     const connexion = async (props) => {
       createUserWithEmailAndPassword(auth, props.email, props.password)
@@ -228,25 +229,70 @@ function App() {
       const getWord = async (props) => {
         if(userId === '') {
           alert('请登录!');
+          setClicked(false);
+          setSetting(true);
         } else {
-          setWords(words.filter((e) => e.cn !== props.cn));
-          var today = new Date(),
-          date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();  
-          const userRef = doc(db, 'users', userId);
-          await updateDoc(userRef, {skills: arrayUnion({cn: props.cn, en: props.en, description: props.description, date: date})})
-          alert('单词已经保存在你的单词本里面了')
-        }
+          if((wordChinese !== props.cn) || (wordEnglish !== props.en)){
+            alert('默写错误🙅‍♂️');
+            setWordChinese('');
+            setWordEnglish('');
+          } else {
+            setWords(words.filter((e) => e.cn !== props.cn));
+            var today = new Date(),
+            date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();  
+            const userRef = doc(db, 'users', userId);
+            await updateDoc(userRef, {skills: arrayUnion({cn: props.cn, en: props.en, description: props.description, date: date})})
+            alert('单词已经保存在你的单词本里面了')
+            setWordChinese('');
+            setWordEnglish('');
+          }}
+      }
+      // getWord({cn: props.cn, en: props.en, description: props.description})
+      const M_wordClicked = () => {
+        
       }
       return(
-        <button onClick={() => { getWord({cn: props.cn, en: props.en, description: props.description}) }} style={{all: 'unset', display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', height: '150px', marginTop: '3%' , borderRadius: '2%',  }}>
-          <div style={{ width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent:'space-around', alignItems: 'center', }}>
-            <p>{props.cn}</p>
-            <p>{props.en}</p>
-          </div>
-          <div style={{ width: '60%' , padding: '5px', backgroundColor: '#D7DDAF' }}>
-            <p>{props.description}</p>
-          </div>
-        </button>
+        <>
+          <button onClick={() => { setGetWordClicked(true) }} style={{all: 'unset', display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', height: '150px', marginTop: '3%' , borderRadius: '2%',  }}>
+            <div style={{ width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent:'space-around', alignItems: 'center', }}>
+              <p>{props.cn}</p>
+              <p>{props.en}</p>
+            </div>
+            <div style={{ width: '60%' , padding: '5px', backgroundColor: '#D7DDAF' }}>
+              <p>{props.description}</p>
+            </div>
+          </button>
+          <Modal isOpen={getWordClicked}>
+            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
+                      <p style={{ marginBottom:0, padding: 0, }}>默写它的英语 : <input  type="text" value={wordEnglish}  onChange={(e) => setWordEnglish(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+                      <p style={{ marginBottom:0, padding: 0, }}>默写它的中文 : <input  type="text" value={wordChinese}  onChange={(e) => setWordChinese(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+            </div>
+            <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center',  height: '80px',  }}>
+              <button style={{
+                width: '100%',
+                height: '80%',
+                marginTop: '10%',
+
+                // bottom: '5vh',
+              }}
+                onClick={() => getWord({cn: props.cn, en: props.en, description: props.description})}
+              >
+                <p>确认</p>
+              </button>
+              <button style={{
+                width: '100%',
+                height: '80%',
+                marginTop: '10%',
+
+                // bottom: '5vh',
+              }}
+                onClick={() => setGetWordClicked(false)}
+              >
+                <p>返回</p>
+              </button>
+            </div>
+          </Modal>
+       </>
       )
     }
     return(
@@ -258,7 +304,7 @@ function App() {
           { words.length !== 0 ?
               words.map(word => {
                     return(
-                        <Word cn={word.cn} en={word.en} description={word.description} />
+                        Word({cn:word.cn, en:word.en, description:word.description})
                     )
                     })
             : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
@@ -270,8 +316,6 @@ function App() {
               width: '100%',
               height: '80%',
               marginTop: '10%',
-
-              // bottom: '5vh',
             }}
               onClick={() => setClicked(false)}
             >
@@ -284,6 +328,7 @@ function App() {
   }
   const M_CheckVocabulariesBoard = (props) => {
     const Word = (props) => {
+
       const getWord = async (props) => {
         if(userId === '') {
           alert('请登录!');
@@ -525,11 +570,11 @@ function App() {
             </div>
         </header>
         <body className='App-body'>
-            <Options2 title="语法整理" description='根据托业真题整理' icon={<BsFillJournalBookmarkFill color="black" size="20px" />} />
-            <Options f={getWord} title="今日单词" description='每天三个单词' icon={<BsClipboard2HeartFill color="black" size="20px" />} />
-            <Options f={setDateClicked} title="历史单词" description='历史单词' icon={<BsClipboardCheckFill size="20px" />}/>
-            <Options f={setUsefulwebClicked} title="推荐网站" description='亲自使用过, 点击网站名字直达' icon={<BsFillLightbulbFill size="20px"/>} />
-            <Options f={setAddWordClicked} title="上传单词" description='上传的单词通过检查后会在第二天为其他人提供' icon={<GiRank3 size="25px"/>} />
+            <Options2 title="语法整理" description='根据托业真题整理' icon={<BsFillJournalBookmarkFill color="black" size="30px" />} />
+            <Options f={getWord} title="今日单词" description='每天三个单词' icon={<BsClipboard2HeartFill color="black" size="30px" />} />
+            <Options f={setDateClicked} title="历史单词" description='历史单词' icon={<BsClipboardCheckFill size="30px" />}/>
+            <Options f={setUsefulwebClicked} title="推荐网站" description='亲自使用过, 点击网站名字直达' icon={<BsFillLightbulbFill size="30px"/>} />
+            <Options f={setAddWordClicked} title="上传单词" description='上传的单词会在第二天为其他人提供' icon={<GiRank3 size="35px"/>} />
             <div style={{ flexGrow: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', }}> 
               {M_Setting()}
             </div>
