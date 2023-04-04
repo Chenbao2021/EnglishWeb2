@@ -42,7 +42,9 @@ function App() {
   const [userId, setUserId] = useState('');
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('')
+  const [emailBis, setEmailBis] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordBis, setPasswordBis] = useState('')
   const [name, setName]= useState('');
   const [userType, setUserType] = useState('');
   const [inscription, setInscription] = useState(false);
@@ -51,6 +53,7 @@ function App() {
   const [uploadWordClicked, setUploadWordClicked] = useState('');
   const [checkVocabulariesBoard, setCheckVocabulariesBoard] = useState('');
   const [getWordClicked, setGetWordClicked ] = useState(false);
+
 
   const getWord = async () => { 
     var today = new Date(),
@@ -103,26 +106,34 @@ function App() {
   }
   const M_SettingContents = (props) => {
     const connexion = async (props) => {
-      createUserWithEmailAndPassword(auth, props.email, props.password)
-      .then(async (userCredential) => {
-        const user = userCredential.user;
-        setUserId(user.uid);
-        var today = new Date(),
-        date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();    
-        const userData= { skills : [], name: props.name, group: props.userType, checkIn: 0, lastCheckIn: date }
-        const userRef = doc(db, 'users', `${user.uid}`);
-  
-        await setDoc(userRef, userData).then(() => {
-          alert('Compte crée');
-          setUserName(props.name);
-        })
-        .catch((error) => {
-          console.log('error lors de le ajout du document')
-        } )
-        // getWords();
-      })
-      .catch((e) => {
-        console.log('Votre compte existe déjà, =', e);
+      if(inscription){
+        if(props.password === props.passwordBis && props.email === props.emailBis) {
+          createUserWithEmailAndPassword(auth, props.email, props.password)
+          .then(async (userCredential) => {
+            const user = userCredential.user;
+            setUserId(user.uid);
+            var today = new Date(),
+            date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();    
+            const userData= { skills : [], name: props.name, group: '', checkIn: 0, lastCheckIn: date }
+            const userRef = doc(db, 'users', `${user.uid}`);
+      
+            await setDoc(userRef, userData).then(() => {
+              alert('Compte crée');
+              setUserName(props.name);            
+            })
+            .catch((error) => {
+              console.log('error lors de le ajout du document')
+            } )
+          })
+          .catch((e) => {
+            console.log('error = ', e);
+          });
+        } else {
+          alert('您输入了不一样的密码或者邮箱');
+          setPasswordBis('')
+          setEmailBis('')
+        }
+      } else if (!inscription) {
         signInWithEmailAndPassword(auth, email, password)
         .then(async (userCredential) => {
           // Signed in 
@@ -131,14 +142,13 @@ function App() {
           const q = doc(db, 'users', user.uid)
           const userData = await getDoc(q);
           setUserName(userData.data().name); 
-          // ...
-          // getWords();
+          setUserType(userData.data().group);
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
         });
-      });
+      }
     }
     const deconnexion = () => {
       auth.signOut()
@@ -152,7 +162,6 @@ function App() {
       setUserName('')
     }
     const checkIn = async (props ) => {
-
     }
     const checkWord = async (props) => {
       const userRef = doc(db, 'users', userId);
@@ -179,17 +188,21 @@ function App() {
                   </div>
                   <div style={{ flexGrow: 5 }}>
                   <p style={{ marginBottom:0, padding: 0, }}>邮箱 : <input type='text' value={email} onChange={(e) => setEmail(e.target.value)} /> </p> 
-                  <p style={{ marginBottom:0, padding: 0, }}>密码 : <input type='text' value={password} onChange={(e) => setPassword(e.target.value)} /> </p> 
+                  { 
+                    inscription ?
+                    <p style={{ marginBottom:0, padding: 0, }}>确认邮箱 : <input type='text' value={emailBis} onChange={(e) => setEmailBis(e.target.value)} /> </p> 
+                    : undefined
+                  }
+                  <p style={{ marginBottom:0, padding: 0, }}>密码 : <input type='text' value={password} onChange={(e) => setPassword(e.target.value)} /> </p>
+                  {
+                    inscription ?
+                    <p style={{ marginBottom:0, padding: 0, }}>确认密码 : <input type='text' value={passwordBis} onChange={(e) => setPasswordBis(e.target.value)} /> </p> 
+                    : undefined
+                  }
                   {
                     inscription ? 
                     <>
                     <p style={{ marginBottom:0, padding: 0, }}>名字 : <input value={name} onChange={(e) => setName(e.target.value)} /> </p> 
-                    <p style={{ marginBottom:0, padding: 0, }}>账号类型: <select value={userType} onChange={(e) => setUserType(e.target.value)}>
-                    <option value="null">------</option>
-                    <option value="admin">管理者</option>
-                    <option value="user">使用者</option>
-                  </select>
-                  </p>
                     </>: undefined
                   }
                   </div>
@@ -199,7 +212,7 @@ function App() {
                 width: '90%',
                 marginTop: '5%',
               }}
-                onClick={() => connexion({email: email, password: password, name: name, userType: userType})}
+                onClick={() => connexion({email: email, emailBis: emailBis, password: password, passwordBis: passwordBis, name: name, userType: userType})}
               >
                 <p>确定</p>
               </button>
@@ -245,6 +258,7 @@ function App() {
             alert('单词已经保存在你的单词本里面了')
             setWordChinese('');
             setWordEnglish('');
+            setGetWordClicked(false);
           }}
       }
       // getWord({cn: props.cn, en: props.en, description: props.description})

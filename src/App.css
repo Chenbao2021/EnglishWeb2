@@ -115,8 +115,9 @@
 }
 
 .bodySettingContents{
-  height: 80vw;
+  height: 40vh;
   width: 80vw;
+  max-width: 400px;
   border-radius: 10%;
 
   background-color:white; 
