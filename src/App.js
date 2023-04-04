@@ -245,7 +245,7 @@ function App() {
           setClicked(false);
           setSetting(true);
         } else {
-          if((wordChinese !== props.cn) || (wordEnglish !== props.en)){
+          if((wordChinese.trim().toLowerCase() !== props.cn.trim().toLowerCase()) || (wordEnglish.trim().toLowerCase() !== props.en.trim().toLowerCase())){
             alert('默写错误🙅‍♂️');
             setWordChinese('');
             setWordEnglish('');
