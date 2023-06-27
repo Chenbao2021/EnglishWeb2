@@ -1,7 +1,8 @@
 import React, {useState, useEffect, FlatList} from 'react';
 import './App.css';
-// import './book.css';
+import './book.css';
 import Modal from 'react-modal';
+import { Configuration, OpenAIApi } from "openai";
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore, arrayUnion, collection,setDoc, query, where, getDocs, getDoc, addDoc, doc, updateDoc } from "firebase/firestore";
@@ -9,9 +10,12 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, si
 import { BsFillJournalBookmarkFill, BsClipboardCheckFill, BsClipboard2HeartFill, BsFillLightbulbFill } from 'react-icons/bs';
 import { GiRank3 } from 'react-icons/gi'
 import { AiOutlineSetting } from 'react-icons/ai'
+import { BiRefresh } from "react-icons/bi";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-
+import { Alert } from 'react-bootstrap';
+import SimpleImageSlider from "react-simple-image-slider";
+import ImageGallery from 'react-image-gallery';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCgLy9XmmzJn3DYf0VTXCzvyA1VxrlplLc",
@@ -27,6 +31,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 
+const images = [
+  { original: "http://yuchenbao.com/AJCF/static/Images/04-06-2023.jpg" },
+  { original: "http://yuchenbao.com/AJCF/static/Images/14-05-2023.jpg" },
+];
 Modal.setAppElement('#root')
 function App() {
   const db = getFirestore(app);
@@ -48,7 +56,7 @@ function App() {
   const [name, setName]= useState('');
   const [userType, setUserType] = useState('');
   const [inscription, setInscription] = useState(false);
-  const [wordEnglish, setWordEnglish] = useState('');
+  const [wordFrench, setWordFrench] = useState('');
   const [wordChinese, setWordChinese] = useState('')
   const [uploadWordClicked, setUploadWordClicked] = useState('');
   const [checkVocabulariesBoard, setCheckVocabulariesBoard] = useState('');
@@ -59,8 +67,8 @@ function App() {
   const [userCheckIn, setUserCheckIn]= useState('');
   const [connected , setConencted] = useState(false);
   const getWord = async () => { 
-    var today = new Date(),
-    date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    var today = new Date()
+    let date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate(); 
     const q = query(collection(db, 'vocabularies'), where('date', '==', date))
     const querySnapshot = await getDocs(q);
     const tab=[]
@@ -274,43 +282,44 @@ function App() {
           setClicked(false);
           setSetting(true);
         } else {
-          if((wordChinese.trim().toLowerCase() !== props.cn.trim().toLowerCase()) || (wordEnglish.trim().toLowerCase() !== props.en.trim().toLowerCase())){
+          if((wordChinese.trim().toLowerCase() !== props.cn.trim().toLowerCase()) || (wordFrench.trim().toLowerCase() !== props.fr.trim().toLowerCase())){
             alert('默写错误🙅‍♂️');
             setWordChinese('');
-            setWordEnglish('');
+            setWordFrench('');
           } else {
             setWords(words.filter((e) => e.cn !== props.cn));
             var today = new Date(),
             date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();  
             const userRef = doc(db, 'users', userId);
-            await updateDoc(userRef, {skills: arrayUnion({cn: props.cn, en: props.en, description: props.description, type: props.type, synonyme: props.synonyme, date: date})})
+            await updateDoc(userRef, {skills: arrayUnion({cn: props.cn, fr: props.fr, description: props.description, type: props.type, synonyme: props.synonyme, date: date})})
             alert('单词已经保存在你的单词本里面了')
             setWordChinese('');
-            setWordEnglish('');
+            setWordFrench('');
             setGetWordClicked(false);
           }}
       }
-      // getWord({cn: props.cn, en: props.en, description: props.description})
-      const M_wordClicked = () => {
-        
-      }
       return(
         <>
-          <button onClick={() => { setGetWordClicked(true) }} style={{all: 'unset', display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', height: '170px', marginTop: '2%' , borderRadius: '2%',  }}>
-            <div style={{width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', alignItems: 'center' }}>
-              <p>{props.synonyme}</p>
-              <p>{props.cn}</p>
-              <div style={{ display:'flex',  flexDirection: 'row',  width: '100%', borderTop: '1px solid black',  justifyContent: 'center' }}>
-                <p>{props.en}</p>
+          <button onClick={() => { setGetWordClicked(true) }} style={{all: 'unset', height:'80vh', width: '80vw', display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF',  }}>
+            <div style={{width: '40%', height: '100%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent: 'space-evenly', alignItems: 'center' }}>
+              <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-around', }}>
+                <p>法语: <br/>{props.fr}</p>
+                <p>中文: <br/>{props.cn}</p>
+              </div>
+              <div style={{ display:'flex', backgroundColor: 'yellow', justifyContent: 'center', alignItems: 'center', height: '40%',  flexDirection: 'row',  width: '100%', borderTop: '1px solid black',  justifyContent: 'center' }}>
+                <p>关联词: <br/> {props.synonyme}</p>
               </div>
             </div>
-            <div style={{ width: '60%' , padding: '5px', backgroundColor: '#D7DDAF', display: 'flex', flexDirection: 'column' }}>
-              <p style={{ all: 'unset', flexGrow: 4, overflow: 'auto', overflowAnchor: 'none' }}> 类型: {props.type} <br/> 详细描述: {props.description}</p>
+            <div style={{ width: '60%' ,   padding: '5px', backgroundColor: '#D7DDAF', display: 'flex', flexDirection: 'column' }}>
+              <p style={{ all: 'unset',   }}> 类型: {props.type}</p>
+              <div style={{ borderTop: 'black 1px solid', overflow: 'auto',  }}>
+                <p>详细描述: <br/> {props.description}</p>
+              </div>
             </div>
           </button>
           <Modal isOpen={getWordClicked}>
             <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
-                      <p style={{ marginBottom:0, padding: 0, }}>默写它的法语 : <input  type="text" value={wordEnglish}  onChange={(e) => setWordEnglish(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+                      <p style={{ marginBottom:0, padding: 0, }}>默写它的法语 : <input  type="text" value={wordFrench}  onChange={(e) => setWordFrench(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
                       <p style={{ marginBottom:0, padding: 0, }}>默写它的中文 : <input  type="text" value={wordChinese}  onChange={(e) => setWordChinese(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
             </div>
             <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center',  height: '80px',  }}>
@@ -321,7 +330,7 @@ function App() {
 
                 // bottom: '5vh',
               }}
-                onClick={() => getWord({cn: props.cn, en: props.en, description: props.description, synonyme: props.synonyme, type: props.type})}
+                onClick={() => getWord({cn: props.cn, fr: props.fr, description: props.description, synonyme: props.synonyme, type: props.type})}
               >
                 <p>确认</p>
               </button>
@@ -341,16 +350,17 @@ function App() {
        </>
       )
     }
+    const [flipped , setFlipped ] = useState(0);
     return(
       <Modal
         isOpen={clicked}
-        // className='vocabulariesBoardContents'
+        className={'vocabulariesBoard'}
       >
-        <div className='vocabulariesBoard'>
+        {/* <div className='vocabulariesBoard'>
           { words.length !== 0 ?
               words.map(word => {
                     return(
-                        Word({cn:word.cn, en:word.en, description:word.description, type: word.type, synonyme: word.synonyme})
+                        Word({cn:word.cn, fr:word.fr, description:word.description, type: word.type, synonyme: word.synonyme})
                     )
                     })
             : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', flexGrow: 1,  borderRadius: '2%',  }}>
@@ -369,7 +379,64 @@ function App() {
               <p>返回</p>
             </button>
           </div>
+        </div> */}
+        <div id="book" className='book'>
+          <div id='p1' className={ flipped > 0 ? 'paper flipped' : 'paper' }>
+            <div className='front'>
+              <div id="f1" className='front-content'>
+                {Word({cn:words[0]?.cn, fr:words[0]?.fr, description:words[0]?.description, type: words[0]?.type, synonyme: words[0]?.synonyme})}
+              </div>
+            </div>
+            <div className='back'>
+              <div id="b1" className='back-content'>
+                <h1>1</h1>
+              </div>
+            </div>
+          </div>
+          <div id='p2' className={ flipped > 1? 'paper flipped': 'paper' }>
+            <div className='front'>
+              <div id="f2" className='front-content'>
+                {Word({cn:words[1]?.cn, fr:words[1]?.fr, description:words[1]?.description, type: words[1]?.type, synonyme: words[1]?.synonyme})}
+              </div>
+            </div>
+            <div className='back'>
+              <div id="b2" className='back-content'>
+                <h1>2</h1>
+              </div>
+            </div>
+          </div>
+          <div id='p3' className={ 'paper'}>
+            <div className='front'>
+              <div id="f3" className='front-content'>
+                {Word({cn:words[2]?.cn, fr:words[2]?.fr, description:words[2]?.description, type: words[2]?.type, synonyme: words[2]?.synonyme})}
+              </div>
+            </div>
+            <div className='back'>
+              <div id="b3" className='back-content'>
+                <h1>Back 3</h1>
+              </div>
+            </div>
+          </div>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80px', width: '250px' }}>
+            <button style={{
+              width: '50%',
+              height: '100%',
+              maxHeight: '100px',
+            }}
+              onClick={() => setClicked(false)}
+            >
+              <p>返回</p>
+            </button>
+            <button id="prev-button" style={{
+              width: '50%',
+              height: '100%',
+              maxHeight: '100px',
+              
+            }} onClick={() => setFlipped((flipped + 1) % 3)}>
+          <p>翻页</p>
+        </button>
+          </div>
       </Modal>
     )
   }
@@ -384,10 +451,10 @@ function App() {
         }
       }
       return(
-        <button onClick={() => { getWord({cn: props.cn, en: props.en, description: props.description}) }} style={{all: 'unset', display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', marginTop: '3%' , borderRadius: '2%', height: '150px',  }}>
+        <button onClick={() => { getWord({cn: props.cn, fr: props.fr, description: props.description}) }} style={{all: 'unset', display: 'flex', flexDirection: 'row', border: '1px black solid', backgroundColor: '#57DDAF', marginTop: '3%' , borderRadius: '2%', height: '150px',  }}>
             <div style={{ paddingTop: '2%', width: '40%', borderRight: '1px black solid', display: 'flex', flexDirection: 'column', justifyContent:'space-around', alignItems: 'center' }}>
               <p>中文: {props.cn}</p>
-              <p>法语: {props.en}</p>
+              <p>法语: {props.fr}</p>
               <div style={{ display:'flex', flexDirection: 'row',  width: '100%', borderTop: '1px solid black', justifyContent: 'space-evenly' }}>
                 <p>拼音: {props.synonyme}</p>
               </div>
@@ -408,7 +475,7 @@ function App() {
             words.length !== 0 ?
               words.map(word => {
                 return(
-                    <Word cn={word.cn} en={word.en} description={word.description} type={word.type} synonyme={word.synonyme} />
+                    <Word cn={word.cn} fr={word.fr} description={word.description} type={word.type} synonyme={word.synonyme} />
                 )
                 })
             : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', flexGrow: 0.6, marginTop: '3%' , borderRadius: '2%',  }}>
@@ -456,9 +523,10 @@ function App() {
         <Calendar onClickDay={(date) => {setMonth(date.getMonth()); setDay(date.getDate())}}/>
         <div className='vocabulariesButtons' style={{display: 'flex', justifyContent: 'center', position: 'absolute', bottom: '5%', width: '80%',  }}>
           <button style={{
+                minHeight: '70px',
                 flexGrow: 1,
                 marginTop: '5%',
-                bottom: '10vh',
+                // bottom: '10vh',
               }}
                 onClick={() => getWordByCalendar()}
               >
@@ -467,6 +535,7 @@ function App() {
             <button style={{
               flexGrow: 1,
               marginTop: '5%',
+              minHeight: '70px',
             }}
               onClick={() => setDateClicked(false)}
             >
@@ -474,88 +543,6 @@ function App() {
             </button>
           </div>
     </Modal>
-    )
-  }
-  const UsefulWeb = (props) => {
-    return(
-      <a href={props.URI} style={{  all: 'unset', border:'1px solid black', display: 'flex', flexDirection: 'column', alignItems: 'center',height: '20%', width: '100%', borderRadius:"2vw", backgroundColor : '#57DDAF', marginBottom: '3vh',  }}>
-        <p style={{ margin: 0, borderBottom: '1px solid black', width: '100%', textAlign:'center' }}>{props.title}</p>
-        <div style={{ flexGrow: 1, }}>
-          <p>{props.description}</p>
-        </div>
-      </a>
-    )
-  }
-  const M_UsefulWebContainer = (props) => {
-    return(
-      <Modal  isOpen={usefulWebClicked}>
-        <UsefulWeb title={'TOEICTest Pro'} description={'免费，海量的托业题，没有广告，并且有专门复习语法的地方'} URI={'https://toeic-testpro.com/'} />
-        <UsefulWeb title={'Usingenglish'} description={'免费，海量的基础题，'} URI={'https://www.usingenglish.com/quizzes/'} />
-
-        <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
-            <button style={{
-              width: '90%',
-              marginTop: '5%',
-
-              position: 'absolute',
-              bottom: '5vh',
-            }}
-              onClick={() => setUsefulwebClicked(false)}
-            >
-              <p>返回</p>
-            </button>
-          </div>
-      </Modal>
-    )
-  }
-  const M_AddWord = (props) => {
-    const pushWord = () => {
-      const docRef = doc(db, 'recommandations', `${word}`);
-      setDoc(docRef, {word: word, description: wordDescription }).then(() => {
-        alert('成功推荐单词!');
-        setWord('');
-        setWordDescryption('');
-      })
-      .catch((error) => {
-        alert('出现错误，请稍后再试');
-      }) 
-      
-      setAddWordClicked(false);
-    }
-    return(
-        <Modal
-          isOpen={addWordClicked}
-        >
-          <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
-            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
-                  <h3>谢谢提供单词!</h3>
-                  <p>提供的单词会在检查以后出现</p>
-                  <p style={{ marginBottom:0, padding: 0, }}>单词 : <input  type="text" value={word}  onChange={(e) => setWord(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
-                  <p>原因 : <textarea   type="text" style={{ all: 'unset',   textAlign: 'unset', border: '1px black solid', height:'30vh', width: "100%", padding: '1px' }} value={wordDescription} onChange={(e) => setWordDescryption(e.target.value)} /> </p> 
-            </div>
-              <button style={{
-                width: '90%',
-                marginTop: '5%',
-                position: 'absolute',
-                bottom: '15vh',
-              }}
-                onClick={() => pushWord()}
-              >
-                <p>确定</p>
-              </button>
-              <button style={{
-                width: '90%',
-                marginTop: '5%',
-
-                position: 'absolute',
-                bottom: '5vh',
-              }}
-                onClick={() => setAddWordClicked(false)}
-              >
-                <p>返回</p>
-              </button>
-          </div>
-        </Modal>
     )
   }
   const M_UploadWord = (props) => {
@@ -570,12 +557,12 @@ function App() {
       setYear(today.getFullYear());
     }, [])
     const pushWord = () => {
-      const docRef = doc(db, 'vocabularies', `${wordEnglish}`);
+      const docRef = doc(db, 'vocabularies', `${wordFrench}`);
       const date = year + '-' + month + '-' + day;
-      setDoc(docRef, {en: wordEnglish, cn: wordChinese,  description: wordDescription, date: date, type: wordType, synonyme: synonyme }).then(() => {
+      setDoc(docRef, {fr: wordFrench, cn: wordChinese,  description: wordDescription, date: date, type: wordType, synonyme: synonyme }).then(() => {
         alert('成功上传单词!');
         setWordChinese('');
-        setWordEnglish('');
+        setWordFrench('');
         setWordDescryption('');
         setWordType('');
         setSynonyme('');
@@ -588,16 +575,25 @@ function App() {
       setAddWordClicked(false);
     }
 
+    const pushWordByChatGPT = () => {
+      const docRef7 = doc(db, 'vocabularies', 'pomme')
+      setDoc(docRef7, {fr: 'pomme', cn: '苹果',  description: 'Un fruit comestible de forme ronde ou ovale.', date: "2023-5-13", type: 'nom', synonyme: 'fruit'})
+      
+      const docRef8 = doc(db, 'vocabularies', 'livre')
+      setDoc(docRef8, {fr: 'livre', cn: '书',  description: 'Un ensemble de feuilles imprimées, reliées ensemble.', date: "2023-5-13", type: 'nom', synonyme: 'ouvrage'})
+      
+    }
+
     return(
         <Modal
           isOpen={uploadWordClicked}
         >
-          <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1, }}>
-            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
-                  <p style={{ marginBottom:0, padding: 0, }}>法语 : <input  type="text" value={wordEnglish}  onChange={(e) => setWordEnglish(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+          <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1,  }}>
+            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center", flexGrow: 1, overflow: 'scroll' }}>
+                  <p style={{ marginBottom:0, padding: 0, }}>法语 : <input  type="text" value={wordFrench}  onChange={(e) => setWordFrench(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
                   <p style={{ marginBottom:0, padding: 0, }}>中文 : <input  type="text" value={wordChinese}  onChange={(e) => setWordChinese(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
-                  <p>介绍 : <textarea   type="text" style={{ all: 'unset',   textAlign: 'unset', border: '1px black solid', height:'30vh', width: "100%", padding: '1px' }} value={wordDescription} onChange={(e) => setWordDescryption(e.target.value)} /> </p> 
-                  <p style={{ }}>单词类型 :   <select value={wordType} onChange={(event) => {setWordType(event.target.value)}}>
+                  <p>介绍 : <textarea   type="text" style={{ all: 'unset',   textAlign: 'unset', border: '1px black solid', height:'20vh', width: "100%", padding: '1px' }} value={wordDescription} onChange={(e) => setWordDescryption(e.target.value)} /> </p> 
+                  <p style={{ margin: 0, padding: 0}}>单词类型 :   <select value={wordType} onChange={(event) => {setWordType(event.target.value)}}>
                       <option value="">--请选择一种类型--</option>
                       <option value="Verb">动词</option>
                       <option value="Noun">名词</option>
@@ -612,18 +608,22 @@ function App() {
               <p>年: <input  type="text" value={year}  onChange={(e) => setYear(e.target.value)} style={{  width:'50%', padding: '1px', border: '1px solid black' }} /></p>
               
             </div>
-            <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'row', alignItems: 'flex-end',  }}>
+            <div style={{  display: 'flex', flexDirection: 'row', alignItems: 'flex-end', margin: 0, padding: 0  }}>
               <button style={{
                 width: '70%',
                 marginTop: '5%',
+                minHeight: '40px',
+                alignSelf: 'center',
               }}
-                onClick={() => pushWord()}
+                onClick={() => pushWordByChatGPT()}
               >
                 <p>确定</p>
               </button>
               <button style={{
                 width: '70%',
                 marginTop: '5%',
+                minHeight: '40px',
+                alignSelf: 'center',
               }}
                 onClick={() => setUploadWordClicked(false)}
               >
@@ -634,84 +634,140 @@ function App() {
         </Modal>
     )
   }
-  // const M_Book = (props) => {
-  //   const [flipped , setFlipped ] = useState(false);
-  //   return(
-  //     <div className='bookContainer'>
-  //       <div id="book" className='book'>
-  //         <div id='p1' className={ flipped === false ? 'paper' : 'paper flipped' }>
-  //           <div className='front'>
-  //             <div id="f1" className='front-content'>
-  //               <h1>Front 1</h1>
-  //             </div>
-  //           </div>
-  //           <div className='back'>
-  //             <div id="b1" className='back-content'>
-  //               <h1>Back 1</h1>
-  //             </div>
-  //           </div>
-  //         </div>
-  //         <div id='p2' className='paper'>
-  //           <div className='front'>
-  //             <div id="f2" className='front-content'>
-  //               <h1>Front 2</h1>
-  //             </div>
-  //           </div>
-  //           <div className='back'>
-  //             <div id="b2" className='back-content'>
-  //               <h1>Back 2</h1>
-  //             </div>
-  //           </div>
-  //         </div>
-  //         <div id='p3' className='paper'>
-  //           <div className='front'>
-  //             <div id="f3" className='front-content'>
-  //               <h1>Front 3</h1>
-  //             </div>
-  //           </div>
-  //           <div className='back'>
-  //             <div id="b3" className='back-content'>
-  //               <h1>Back 3</h1>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </div>
-  //       <button id="prev-button" onClick={() => setFlipped(!flipped)}>
-  //         <p>LEFT</p>
-  //       </button>
-  //       <button id="next-button">
-  //         <p>Right</p>
-  //       </button>
+  const M_Book = (props) => {
+    const [flipped , setFlipped ] = useState(false);
+    return(
+      <div className='bookContainer'>
+        <div id="book" className='book'>
+          <div id='p1' className={ flipped === false ? 'paper' : 'paper flipped' }>
+            <div className='front'>
+              <div id="f1" className='front-content'>
+                <h1>Front 1</h1>
+              </div>
+            </div>
+            <div className='back'>
+              <div id="b1" className='back-content'>
+                <h1>Back 1</h1>
+              </div>
+            </div>
+          </div>
+          <div id='p2' className='paper'>
+            <div className='front'>
+              <div id="f2" className='front-content'>
+                <h1>Front 2</h1>
+              </div>
+            </div>
+            <div className='back'>
+              <div id="b2" className='back-content'>
+                <h1>Back 2</h1>
+              </div>
+            </div>
+          </div>
+          <div id='p3' className='paper'>
+            <div className='front'>
+              <div id="f3" className='front-content'>
+                <h1>Front 3</h1>
+              </div>
+            </div>
+            <div className='back'>
+              <div id="b3" className='back-content'>
+                <h1>Back 3</h1>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button id="prev-button" onClick={() => setFlipped(!flipped)}>
+          <p>LEFT</p>
+        </button>
+        <button id="next-button">
+          <p>Right</p>
+        </button>
 
+      </div>
+    )
+  }
+  // const M_AskQuestions = (props) => {
+  //   //Codes
+  //   const [clicked, setClicked] = useState(false);
+  //   const [message, setMessage] = useState('');
+  //   const apiKey = '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';
+  //   const askQuestion = () => {
+  //     setClicked(true);
+  //   }
+  // const [questionEtat, setQuestionEtat] = useState(false)
+  //   const askQuestion2 = async () => {
+  //     if(questionEtat === true) {
+  //       alert('Tu as déjà posé une question, il faut refraîcher avant de poser un autre');
+  //     }
+  //     else {
+  //       console.log('askQ');
+  //       setQuestionEtat(true);
+  //       await fetch('http://34.175.246.161/' + message)
+  //       .then(response => response.json())
+  //       .then(data => {
+  //         setMessage(message + '\n Response : \n' + data);
+  //       })
+  //     }
+  //   }
+  //   //Logiques
+  //   return (
+  //     <div className='questionContainer'>
+  //       <button className='questionButton' onClick={() => askQuestion()}> Questions </button>
+  //       <Modal
+  //         isOpen={clicked}
+  //         // className='questionPanel'
+  //       >
+  //         <p>Qu'est ce que vous voulez demander?</p>
+  //         <textarea 
+  //           className="obscure-input" 
+  //           placeholder="Saisissez quelque chose"
+  //           rows={4}
+  //           cols={40}  
+  //           value={message}
+  //           onChange={e => setMessage(e.target.value)}
+  //         />
+  //         <hr/>
+  //         <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+  //           {/* <BiRefresh color="black" size="50px" onClick ={() => { setMessage('') }} /> */}
+  //           <button onClick={() => askQuestion2()}>
+  //             提问
+  //           </button>
+  //           <button onClick={() => {setMessage(""); setQuestionEtat(false) }}>
+  //             刷新
+  //           </button>            
+  //           <button onClick={() => setClicked(false)}>
+  //             关闭
+  //           </button>
+  //         </div>
+  //       </Modal>
   //     </div>
   //   )
   // }
   return (
-      <div className="App">
-        <header className="App-header">
-            <div style={{ color: 'white' }}>
-              <h1>Café franco-chinois</h1>
-              <p> 每天一点进步，日积月累 </p>
-            </div>
-        </header>
-        <body className='App-body'>
-            <Options2 title="Séances précédantes" description='以往会议记录' icon={<BsFillJournalBookmarkFill color="black" size="30px" />} />
-            <Options f={getWord} title="Trois mots par jour" description='每天三个单词' icon={<BsClipboard2HeartFill color="black" size="30px" />} />
-            <Options f={setDateClicked} title="Les mots d'avants" description='历史单词' icon={<BsClipboardCheckFill size="30px" />}/>
-            <Options f={setUsefulwebClicked} title="Sites recommendé " description='学习语言的推荐网站' icon={<BsFillLightbulbFill size="30px"/>} />
-            <Options f={setAddWordClicked} title="Recommander des mots" description='推荐你喜欢的单词' icon={<GiRank3 size="35px"/>} />
-            <div style={{ flexGrow: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', }}> 
-              {M_Setting()}
-            </div>
-        </body>
-        {M_SettingContents() }
-        {M_SetDate() }
-        {M_VocabulariesBoard() }
-        {M_UsefulWebContainer()}
-        {M_AddWord()}
-        {M_UploadWord()}
-        {M_CheckVocabulariesBoard()}
-        {/* {M_Book()} */}
+      <div className="App" style={{  width: '100%', }}>
+        <div className='title' style={{  }} >
+          <h1>Café franco-chinois</h1>
+        </div>
+        <div className='imageSlider'>
+          <div>
+            <p>Nos photos de café</p>
+          </div>
+        <ImageGallery 
+          items={images} 
+          showNav={false}
+          showFullscreenButton={false}
+          autoPlay={true}
+        />
+        </div>
+        <div className='description' style={{ height: '30%', }}>
+          <p>L’Association des Jeunes Chinois de France (AJCF) est une association française créée en 2009 qui a pour but de promouvoir la culture franco-chinoise et d’aider les jeunes d’origine chinoise à mieux appréhender leur double culturalité.<br/> L’AJCF organise des événements pour apprendre et promouvoir la culture chinoise en France à travers des projets et des événements.
+
+            <br/>Le Café Franco-Chinois est un événement organisé par l’AJCF qui propose à ceux qui le souhaitent de se réunir dans un café/pique niques afin de pratiquer le chinois/ou le français. Le chef de projet pour cet événement est Estelle Chen.</p>
+        </div>
+        <div className='optionsContainer' >
+          <Options title="FeedBack" description="Donnez nous vos opiniosn" icon={<GiRank3 />} />
+          <Options2 title="Compte rendus" description="" icon={<GiRank3 />}/>
+        </div>
       </div>
     );
 }

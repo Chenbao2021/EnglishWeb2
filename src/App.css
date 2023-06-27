@@ -1,3 +1,5 @@
+@import "~react-image-gallery/styles/css/image-gallery.css";
+
 .App {
   position: absolute;
   left: 50%;
@@ -6,8 +8,7 @@
   height: 100vh;
   max-width: 700px;
   width: 100vw;
-  background-color: #57DDAF;
-
+  background: #D9D9D9;
   display: flex;
   flex-direction: column;
 }
@@ -16,7 +17,7 @@
   border-radius: 3vw;
   padding: 3vh;
   width: 80%;
-  height: 55%;
+  height: 60%;
   position: absolute;
   top:50%;
   left:50%;
@@ -45,12 +46,14 @@
   /* align-items: center; */
 }
 .vocabulariesBoard{
-  background-color: white;
+  /* background-color: black; */
   width: 100%;
   height: 100%;
   /* padding: 5%; */
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
   overflow: auto;
   position: relative;
@@ -60,8 +63,8 @@
   border: 1px black solid;
   background-color: white;
 
-  width: 85%;
-  height: 10vh;
+  width: 45%;
+  height: 7vh;
   border-radius: 5px;
 
   margin-bottom: 10px;
@@ -74,8 +77,8 @@
   border: 1px black solid;
   background-color: white;
 
-  width: 85%;
-  height: 10vh;
+  width: 45%;
+  height: 7vh;
   border-radius: 5px;
 
   margin-bottom: 10px;
@@ -181,3 +184,85 @@
   /* background-color: bisque; */
 }
 
+.questionContainer{
+  position: absolute;
+  background-color: aqua;
+
+  right: 0%;
+  bottom: 0%;
+
+  border-top-left-radius: 50%;
+
+  padding: 2px;
+}
+
+.questionButton{
+  border: none;
+  background-color: transparent;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+.obscure-input {
+  width: 100%;
+  height: 50%;
+  font-size: 18px;
+  background-color: white;
+  color: black;
+  border: none;
+  padding: 10px;
+  box-sizing: border-box;
+
+  border-color: black;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.title h1 {
+  color: #F83F05;
+  text-align: center;
+  text-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+  font-size: 40px;
+  font-family: Inter;
+  font-style: italic;
+  font-weight: 900;
+}
+
+.imageSlider{
+  display: flex;
+  padding: 1vw;
+  flex-direction: column;
+
+  height: 40%;
+
+}
+
+.imageSlider div {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+
+}
+.imageSlider div p {
+  color: #FFF;
+  font-size: 13px;
+  font-family: Inter;
+  font-weight: 600;
+}
+
+.optionsContainer {
+
+  width: 100%;
+  /* background-color: aquamarine; */
+  position: absolute;
+  bottom: 1vh;
+
+  display: flex;
+  flex-direction: row;
+
+  align-items: center;
+  justify-content: space-evenly;
+
+}
