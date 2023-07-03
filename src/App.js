@@ -14,8 +14,7 @@ import { BiRefresh } from "react-icons/bi";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Alert } from 'react-bootstrap';
-import SimpleImageSlider from "react-simple-image-slider";
-import ImageGallery from 'react-image-gallery';
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyCgLy9XmmzJn3DYf0VTXCzvyA1VxrlplLc",
@@ -31,10 +30,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 
-const images = [
-  { original: "http://yuchenbao.com/AJCF/static/Images/04-06-2023.jpg" },
-  { original: "http://yuchenbao.com/AJCF/static/Images/14-05-2023.jpg" },
-];
 Modal.setAppElement('#root')
 function App() {
   const db = getFirestore(app);
@@ -545,6 +540,89 @@ function App() {
     </Modal>
     )
   }
+  const M_UsefulWebContainer = (props) => {
+    const UsefulWeb = (props) => {
+      return(
+        <a href={props.URI} style={{all: 'unset', position: 'relative', border:'1px solid black', display: 'flex', flexDirection: 'column', alignItems: 'center',height: '20%', width: '100%', borderRadius:"2vw", backgroundColor : '#57DDAF', marginBottom: '3vh', padding: '2px', overflow: 'auto'  }}>
+          <p style={{  marginBottom: '10px', margin: 0, borderBottom: '1px solid black', width: '100%', textAlign:'center' }}>{props.title}</p>
+          <div style={{ flexGrow: 1, }}>
+            <p>{props.description}</p>
+          </div>
+        </a>
+      )
+    }
+    return(
+      <Modal  isOpen={usefulWebClicked}>
+        <UsefulWeb title={'Français Facile'} description={'为初学者和中级学习者提供免费法语课程和练习的网站。该网站涵盖了广泛的主题，包括语法，词汇和发音。'} URI={'https://www.francaisfacile.com/'} />
+        <UsefulWeb title={'OpenLearn '} description={'免费的在线学习平台，提供从初学者到高级水平的法语语言课程。该网站提供视频讲座，音频课程和互动练习，帮助学习者提高法语技能。'} URI={'https://www.open.edu/openlearn/languages/french'} />
+        <UsefulWeb title={'Memrise'} description={'免费的语言学习应用程序，使用记忆技巧和间隔重复帮助学习者记住新的法语词汇和语法规则。'} URI={'https://www.memrise.com/courses/english/french/'} />
+        <UsefulWeb title={'Chinese Grammar Wiki'} description={'Chinese Grammar Wiki est un site Web qui propose des explications détaillées de la grammaire du mandarin chinois. Le site couvre une large gamme de points de grammaire, des structures de phrases de base aux sujets avancés, et fournit des exemples clairs et des exercices pratiques.'} URI={'https://resources.allsetlearning.com/chinese/grammar/Main_Page'} />
+        <UsefulWeb title={'Du Chinese'} description={' Du Chinese est un site Web qui offre des exercices de lecture et de écoute pour les apprenants du mandarin chinois. Le site propose des textes classés par niveau avec des enregistrements audio, des listes de vocabulaire et des explications grammaticales.'} URI={'https://www.duchinese.net/'} />
+        <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
+            <button style={{
+              width: '90%',
+              marginTop: '5%',
+              minHeight: '70px',
+              bottom: '5vh',
+            }}
+              onClick={() => setUsefulwebClicked(false)}
+            >
+              <p>返回</p>
+            </button>
+          </div>
+      </Modal>
+    )
+  }
+  const M_AddWord = (props) => {
+    const pushWord = () => {
+      const docRef = doc(db, 'recommandations', `${word}`);
+      setDoc(docRef, {word: word, description: wordDescription }).then(() => {
+        alert('成功推荐单词!');
+        setWord('');
+        setWordDescryption('');
+      })
+      .catch((error) => {
+        alert('出现错误，请稍后再试');
+      }) 
+      
+      setAddWordClicked(false);
+    }
+    return(
+        <Modal
+          isOpen={addWordClicked}
+        >
+          <div className='vocabulariesButtons' style={{ display: 'flex', justifyContent: 'center', flexGrow: 1  }}>
+            <div className='inscription-line' style={{ display: 'flex', flexDirection:"column", alignItems:"center" }}>
+                  <h3>谢谢提供单词!</h3>
+                  <p>提供的单词会在检查以后出现</p>
+                  <p style={{ marginBottom:0, padding: 0, }}>单词 : <input  type="text" value={word}  onChange={(e) => setWord(e.target.value)} style={{  width:'100%', padding: '1px', border: '1px solid black' }} /> </p> 
+                  <p>原因 : <textarea   type="text" style={{ all: 'unset',   textAlign: 'unset', border: '1px black solid', height:'30vh', width: "100%", padding: '1px' }} value={wordDescription} onChange={(e) => setWordDescryption(e.target.value)} /> </p> 
+            </div>
+              <button style={{
+                width: '90%',
+                marginTop: '5%',
+                position: 'absolute',
+                bottom: '15vh',
+              }}
+                onClick={() => pushWord()}
+              >
+                <p>确定</p>
+              </button>
+              <button style={{
+                width: '90%',
+                marginTop: '5%',
+
+                position: 'absolute',
+                bottom: '5vh',
+              }}
+                onClick={() => setAddWordClicked(false)}
+              >
+                <p>返回</p>
+              </button>
+          </div>
+        </Modal>
+    )
+  }
   const M_UploadWord = (props) => {
     const [day, setDay] = useState('');
     const [month, setMonth] = useState('');
@@ -686,88 +764,105 @@ function App() {
       </div>
     )
   }
-  // const M_AskQuestions = (props) => {
-  //   //Codes
-  //   const [clicked, setClicked] = useState(false);
-  //   const [message, setMessage] = useState('');
-  //   const apiKey = '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';
-  //   const askQuestion = () => {
-  //     setClicked(true);
-  //   }
-  // const [questionEtat, setQuestionEtat] = useState(false)
-  //   const askQuestion2 = async () => {
-  //     if(questionEtat === true) {
-  //       alert('Tu as déjà posé une question, il faut refraîcher avant de poser un autre');
-  //     }
-  //     else {
-  //       console.log('askQ');
-  //       setQuestionEtat(true);
-  //       await fetch('http://34.175.246.161/' + message)
-  //       .then(response => response.json())
-  //       .then(data => {
-  //         setMessage(message + '\n Response : \n' + data);
-  //       })
-  //     }
-  //   }
-  //   //Logiques
-  //   return (
-  //     <div className='questionContainer'>
-  //       <button className='questionButton' onClick={() => askQuestion()}> Questions </button>
-  //       <Modal
-  //         isOpen={clicked}
-  //         // className='questionPanel'
-  //       >
-  //         <p>Qu'est ce que vous voulez demander?</p>
-  //         <textarea 
-  //           className="obscure-input" 
-  //           placeholder="Saisissez quelque chose"
-  //           rows={4}
-  //           cols={40}  
-  //           value={message}
-  //           onChange={e => setMessage(e.target.value)}
-  //         />
-  //         <hr/>
-  //         <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
-  //           {/* <BiRefresh color="black" size="50px" onClick ={() => { setMessage('') }} /> */}
-  //           <button onClick={() => askQuestion2()}>
-  //             提问
-  //           </button>
-  //           <button onClick={() => {setMessage(""); setQuestionEtat(false) }}>
-  //             刷新
-  //           </button>            
-  //           <button onClick={() => setClicked(false)}>
-  //             关闭
-  //           </button>
-  //         </div>
-  //       </Modal>
-  //     </div>
-  //   )
-  // }
-  return (
-      <div className="App" style={{  width: '100%', }}>
-        <div className='title' style={{  }} >
-          <h1>Café franco-chinois</h1>
-        </div>
-        <div className='imageSlider'>
-          <div>
-            <p>Nos photos de café</p>
-          </div>
-        <ImageGallery 
-          items={images} 
-          showNav={false}
-          showFullscreenButton={false}
-          autoPlay={true}
-        />
-        </div>
-        <div className='description' style={{ height: '30%', }}>
-          <p>L’Association des Jeunes Chinois de France (AJCF) est une association française créée en 2009 qui a pour but de promouvoir la culture franco-chinoise et d’aider les jeunes d’origine chinoise à mieux appréhender leur double culturalité.<br/> L’AJCF organise des événements pour apprendre et promouvoir la culture chinoise en France à travers des projets et des événements.
 
-            <br/>Le Café Franco-Chinois est un événement organisé par l’AJCF qui propose à ceux qui le souhaitent de se réunir dans un café/pique niques afin de pratiquer le chinois/ou le français. Le chef de projet pour cet événement est Estelle Chen.</p>
-        </div>
-        <div className='optionsContainer' >
-          <Options title="FeedBack" description="Donnez nous vos opiniosn" icon={<GiRank3 />} />
-          <Options2 title="Compte rendus" description="" icon={<GiRank3 />}/>
-        </div>
+  const M_AskQuestions = (props) => {
+    //Codes
+    const [clicked, setClicked] = useState(false);
+    const [message, setMessage] = useState('');
+    const apiKey = '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';
+    const askQuestion = () => {
+      setClicked(true);
+    }
+  //   const askQuestion2 = async () => {
+  //     const configuration = new Configuration({
+  //       organization: "org-Ovu3qBCZD7NppxfJpDtbCggm",
+  //       apiKey: apiKey,
+  //   });
+  //   const openai = new OpenAIApi(configuration);
+
+  //   const response = await openai.createChatCompletion({
+  //     model: "gpt-3.5-turbo",
+  //     messages: [{"role": "user", "content": message}],
+  // })
+   
+  //   setMessage(response.data.choices[0].message.content);
+  //   }
+  const [questionEtat, setQuestionEtat] = useState(false)
+    const askQuestion2 = async () => {
+      if(questionEtat === true) {
+        alert('Tu as déjà posé une question, il faut refraîcher avant de poser un autre');
+      }
+      else {
+        console.log('askQ');
+        setQuestionEtat(true);
+        await fetch('http://34.175.246.161/' + message)
+        .then(response => response.json())
+        .then(data => {
+          setMessage(message + '\n Response :' + data);
+        })
+      }
+    }
+    //Logiques
+    return (
+      <div className='questionContainer'>
+        <button className='questionButton' onClick={() => askQuestion()}> Questions </button>
+        <Modal
+          isOpen={clicked}
+          // className='questionPanel'
+        >
+          <p>Qu'est ce que vous voulez demander?</p>
+          <textarea 
+            className="obscure-input" 
+            placeholder="Saisissez quelque chose"
+            rows={4}
+            cols={40}  
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+          />
+          <hr/>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+            {/* <BiRefresh color="black" size="50px" onClick ={() => { setMessage('') }} /> */}
+            <button onClick={() => askQuestion2()}>
+              提问
+            </button>
+            <button onClick={() => {setMessage(""); setQuestionEtat(false) }}>
+              刷新
+            </button>            
+            <button onClick={() => setClicked(false)}>
+              关闭
+            </button>
+          </div>
+        </Modal>
+      </div>
+    )
+  }
+  return (
+      <div className="App">
+        <header className="App-header">
+            <div style={{ color: 'white' }}>
+              <h1>Café franco-chinois</h1>
+              <p> 每天一点进步，日积月累 </p>
+            </div>
+        </header>
+        <body className='App-body'>
+            <Options2 title="Séances précédantes" description='以往会议记录' icon={<BsFillJournalBookmarkFill color="black" size="30px" />} />
+            <Options f={getWord} title="Trois mots par jour" description='每天三个单词' icon={<BsClipboard2HeartFill color="black" size="30px" />} />
+            <Options f={setDateClicked} title="Les mots d'avants" description='历史单词' icon={<BsClipboardCheckFill size="30px" />}/>
+            <Options f={setUsefulwebClicked} title="Sites recommendé " description='学习语言的推荐网站' icon={<BsFillLightbulbFill size="30px"/>} />
+            <Options f={setAddWordClicked} title="Recommander des mots" description='推荐你喜欢的单词' icon={<GiRank3 size="35px"/>} />
+            <div style={{ flexGrow: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', }}> 
+              {M_Setting()}
+            </div>
+        </body>
+        {M_SettingContents() }
+        {M_SetDate() }
+        {M_VocabulariesBoard() }
+        {M_UsefulWebContainer()}
+        {M_AddWord()}
+        {M_UploadWord()}
+        {M_CheckVocabulariesBoard()}
+        {M_AskQuestions()}
+        {/* {M_Book()} */}
       </div>
     );
 }
