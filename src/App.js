@@ -7,13 +7,16 @@ import { Configuration, OpenAIApi } from "openai";
 import { initializeApp } from "firebase/app";
 import { getFirestore, arrayUnion, collection,setDoc, query, where, getDocs, getDoc, addDoc, doc, updateDoc } from "firebase/firestore";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { BsFillJournalBookmarkFill, BsClipboardCheckFill, BsClipboard2HeartFill, BsFillLightbulbFill } from 'react-icons/bs';
+import { BsRobot } from 'react-icons/bs';
 import { GiRank3 } from 'react-icons/gi'
 import { AiOutlineSetting } from 'react-icons/ai'
 import { BiRefresh } from "react-icons/bi";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { Alert } from 'react-bootstrap';
+import { Sidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
+import { AwesomeButtonProgress, AwesomeButton } from "react-awesome-button";
+import 'react-awesome-button/dist/styles.css';
+
 
 
 const firebaseConfig = {
@@ -85,20 +88,20 @@ function App() {
         </div>
         <div className='bodyOptionRight'>
           <p style={{ fontWeight: 'bold', fontSize: '24px' }}>{props.title}</p>
-          <p style={{ fontSize: '12px' }}>{props.description}</p>
+          {/* <p style={{ fontSize: '12px' }}>{props.description}</p> */}
         </div>
       </button>
     )
   }
   const Options2 = (props) => {
     return(
-      <a href='https://drive.google.com/drive/folders/1E3k8FBbMAUzVk4xmB7PK0-ivibB8zJqy?usp=share_link' className='bodyOption2'>
+      <a href='https://drive.google.com/drive/folders/1E3k8FBbMAUzVk4xmB7PK0-ivibB8zJqy?usp=share_link' className='bodyOption'>
         <div className='bodyOptionLeft'>
           {props.icon}
         </div>
         <div className='bodyOptionRight'>
           <p style={{ fontWeight: 'bold', fontSize: '24px' }}>{props.title}</p>
-          <p style={{ fontSize: '12px' }}>{props.description}</p>
+          {/* <p style={{ fontSize: '12px' }}>{props.description}</p> */}
         </div>
       </a>
     )
@@ -166,17 +169,6 @@ function App() {
         });
       }
     }
-    // const deconnexion = () => {
-    //   auth.signOut()
-    //   .then(() => {
-    //     console.log('Utilisateur déconnecté');
-    //     setUserId('')
-    //   })
-    //   .catch((error) => {
-    //     console.log(error.message);
-    //   });
-    //   setUserName('')
-    // }
     const checkIn = async (props ) => {
       var today = new Date(),
       date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();  
@@ -769,25 +761,8 @@ function App() {
     //Codes
     const [clicked, setClicked] = useState(false);
     const [message, setMessage] = useState('');
-    const apiKey = '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';
-    const askQuestion = () => {
-      setClicked(true);
-    }
-  //   const askQuestion2 = async () => {
-  //     const configuration = new Configuration({
-  //       organization: "org-Ovu3qBCZD7NppxfJpDtbCggm",
-  //       apiKey: apiKey,
-  //   });
-  //   const openai = new OpenAIApi(configuration);
-
-  //   const response = await openai.createChatCompletion({
-  //     model: "gpt-3.5-turbo",
-  //     messages: [{"role": "user", "content": message}],
-  // })
-   
-  //   setMessage(response.data.choices[0].message.content);
-  //   }
-  const [questionEtat, setQuestionEtat] = useState(false)
+    const [reponse, setReponse] = useState('');
+    const [questionEtat, setQuestionEtat] = useState(false)
     const askQuestion2 = async () => {
       if(questionEtat === true) {
         alert('Tu as déjà posé une question, il faut refraîcher avant de poser un autre');
@@ -798,62 +773,103 @@ function App() {
         await fetch('http://34.175.246.161/' + message)
         .then(response => response.json())
         .then(data => {
-          setMessage(message + '\n Response :' + data);
+          setReponse(data);
         })
       }
     }
     //Logiques
     return (
-      <div className='questionContainer'>
-        <button className='questionButton' onClick={() => askQuestion()}> Questions </button>
+      <>      
+        <div className='robotContainer' style={{ flexGrow: 1,  width: '40%', position: 'absolute', bottom: '5%', right: '1%', }} onClick={() => setClicked(!clicked)}>
+          <BsRobot size={'45px'} className='robot'/>
+        </div>
         <Modal
-          isOpen={clicked}
-          // className='questionPanel'
-        >
-          <p>Qu'est ce que vous voulez demander?</p>
-          <textarea 
-            className="obscure-input" 
-            placeholder="Saisissez quelque chose"
-            rows={4}
-            cols={40}  
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-          />
-          <hr/>
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
-            {/* <BiRefresh color="black" size="50px" onClick ={() => { setMessage('') }} /> */}
-            <button onClick={() => askQuestion2()}>
-              提问
-            </button>
-            <button onClick={() => {setMessage(""); setQuestionEtat(false) }}>
-              刷新
-            </button>            
-            <button onClick={() => setClicked(false)}>
-              关闭
-            </button>
-          </div>
-        </Modal>
-      </div>
+            isOpen={clicked}
+            className='chatGPTModal'
+          >
+            <div className='questionArea'>
+              <p>Ecrivez votre question ici :</p>
+              <textarea 
+                style= {{
+                  width: '80%',
+                  height: '50%',
+                }}
+                placeholder="Saisissez quelque chose"
+                rows={4}
+                // cols={30}  
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+              />
+            </div>
+            <hr/>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+              {/* <BiRefresh color="black" size="50px" onClick ={() => { setMessage('') }} /> */}
+              {/* <button onClick={() => askQuestion2()}>
+                提问
+              </button> */}
+                  <AwesomeButtonProgress type="primary" onPress={async (element, next)=>{
+                    // await for something then call
+                    await askQuestion2();
+                    next();
+                  }}>提问</AwesomeButtonProgress>
+            </div>
+            <div className='responseArea'>
+              <p>Votre aurez la réponse ic: </p>
+              <textarea 
+                  style={{ border: '2px double red', borderRadius: '2px', padding: '2px', width: '80%', height: '70%' }}
+                  // rows={25}
+                  // cols={35}  
+                  value={reponse}
+                />
+            <div style={{ marginTop: '5px', width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center' }}>
+              {/* <BiRefresh color="black" size="50px" onClick ={() => { setMessage('') }} /> */}
+              {/* <button onClick={() => {setReponse(""); setMessage(""); setQuestionEtat(false) }}>
+                刷新
+              </button>            
+              <button onClick={() => setClicked(false)}>
+                关闭
+              </button> */}
+                  <AwesomeButton button-raise-level='1px' type="primary" onPress={(element, next) => { setReponse(""); setMessage(""); setQuestionEtat(false);  }}
+                  >刷新</AwesomeButton>
+                  <AwesomeButton button-raise-level='1px' type="primary" onPress={async (element, next)=>{
+                    setClicked(false)
+                  }}>关闭</AwesomeButton>
+            </div>
+
+            </div>
+          </Modal>
+      </>
     )
   }
   return (
-      <div className="App">
-        <header className="App-header">
+    <div style={{ backgroundColor: '#57DDAF', height: '100vh'}}>
+      <div className="App" style={{ height: window.innerHeight, width: window.innerWidth }}>
+        {/* <header className="App-header">
             <div style={{ color: 'white' }}>
               <h1>Café franco-chinois</h1>
               <p> 每天一点进步，日积月累 </p>
             </div>
-        </header>
-        <body className='App-body'>
-            <Options2 title="Séances précédantes" description='以往会议记录' icon={<BsFillJournalBookmarkFill color="black" size="30px" />} />
-            <Options f={getWord} title="Trois mots par jour" description='每天三个单词' icon={<BsClipboard2HeartFill color="black" size="30px" />} />
-            <Options f={setDateClicked} title="Les mots d'avants" description='历史单词' icon={<BsClipboardCheckFill size="30px" />}/>
-            <Options f={setUsefulwebClicked} title="Sites recommendé " description='学习语言的推荐网站' icon={<BsFillLightbulbFill size="30px"/>} />
-            <Options f={setAddWordClicked} title="Recommander des mots" description='推荐你喜欢的单词' icon={<GiRank3 size="35px"/>} />
-            <div style={{ flexGrow: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', }}> 
-              {M_Setting()}
-            </div>
-        </body>
+        </header> */}
+        <div style= {{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flexGrow: 1}}>
+            
+          </div>
+          <div style={{ display: 'flex', margin: '5px', position: 'absolute', bottom: '2%', width: '100%', }}>
+            <Sidebar className='sidebarContainer' backgroundColor='none' rootStyles={{ all: 'unset', width: '60%'}}>
+              <Menu 
+              rootStyles={{all: 'unset'}}
+              >
+                <SubMenu label="Ressources" rootStyles={{borderRadius: '5%', backgroundColor: 'white'}} >
+                  <MenuItem onClick={() => window.location.href = 'https://drive.google.com/drive/folders/1E3k8FBbMAUzVk4xmB7PK0-ivibB8zJqy?usp=share_link'}>Comptes rendus </MenuItem>
+                  <MenuItem onClick={() => setDateClicked(!dateClicked)} > Vocabulaires </MenuItem>
+                  <MenuItem onClick={() => setUsefulwebClicked(!usefulWebClicked)}> Recommandations </MenuItem>
+                </SubMenu>
+              </Menu>
+            </Sidebar>
+            {M_AskQuestions()}
+          </div>
+       </div>
+
         {M_SettingContents() }
         {M_SetDate() }
         {M_VocabulariesBoard() }
@@ -861,8 +877,8 @@ function App() {
         {M_AddWord()}
         {M_UploadWord()}
         {M_CheckVocabulariesBoard()}
-        {M_AskQuestions()}
         {/* {M_Book()} */}
+      </div>
       </div>
     );
 }
